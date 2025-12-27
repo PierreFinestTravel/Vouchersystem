@@ -140,7 +140,11 @@ class GolfVoucher:
 
 @dataclass
 class ParsedORGA:
-    """Container for all parsed ORGA data."""
+    """Container for all parsed ORGA data.
+    
+    NOTE: This contains SERVICE data from ORGA only (hotels, transfers, etc.)
+    TRAVELLER NAMES must come from separate client files, NOT from ORGA.
+    """
     hotels: List[HotelStay] = field(default_factory=list)
     transfers: List[TransferVoucher] = field(default_factory=list)
     activities: List[ActivityVoucher] = field(default_factory=list)
@@ -148,8 +152,10 @@ class ParsedORGA:
     car_rentals: List[CarRentalVoucher] = field(default_factory=list)
     golf: List[GolfVoucher] = field(default_factory=list)
     
-    # Metadata
-    client_name: str = ""
+    # Metadata from ORGA header (for reference only - NOT for voucher names)
+    # IMPORTANT: These fields are NOT used for traveller names on vouchers
+    # Traveller names MUST come from uploaded client files (SINGLE or GROUP mode)
+    client_name: str = ""  # DO NOT use for voucher traveller names
     trip_number: str = ""
     pax: int = 0
     dates: str = ""
