@@ -18,8 +18,197 @@ from .supplier_info import get_supplier_info
 
 logger = logging.getLogger(__name__)
 
-# Column indices (1-based as in Excel)
-# Hotel columns
+
+class ColumnMapping:
+    """Dynamic column mapping detected from ORGA header row."""
+    
+    def __init__(self):
+        # Hotel columns (defaults)
+        self.days = 1
+        self.day = 2
+        self.date = 3
+        self.region_city = 4
+        self.hotel_supplier = 5
+        self.room = 6
+        self.board = 7
+        self.hotel_notes = 8
+        self.hotel_status = 9
+        self.hotel_invoice = 10
+        
+        # Golf columns (defaults for compact format)
+        self.golf_supplier = 11
+        self.golf_course = 12
+        self.tee_time = 13
+        self.driving_range = None  # May not exist
+        self.golf_cart = 14
+        self.rental_set = 15
+        self.golf_notes = 16
+        self.golf_status = 17
+        self.golf_invoice = 18
+        
+        # Activity columns (defaults for compact format)
+        self.activity_supplier = 20
+        self.activity_name = 21
+        self.activity_time = 22
+        self.activity_notes = 23
+        self.activity_status = 24
+        self.activity_invoice = 25
+        
+        # Transfer columns (defaults for compact format)
+        self.transfer_supplier = 26
+        self.transfer_route = 27
+        self.service_type = 28
+        self.pickup_time = 29
+        self.dropoff_time = 30
+        self.flight_num = 31
+        self.flight_time = 32
+        self.travel_time = 33
+        self.transfer_notes = 34
+        self.transfer_status = 35
+        self.transfer_invoice = 36
+
+
+def detect_columns(ws: Worksheet, header_row: int) -> ColumnMapping:
+    """Auto-detect column positions from header row."""
+    mapping = ColumnMapping()
+    
+    # Read all headers
+    headers = {}
+    for col in range(1, min(60, ws.max_column + 1)):
+        val = ws.cell(header_row, col).value
+        if val:
+            headers[col] = str(val).lower().strip()
+    
+    logger.info(f"Detecting columns from header row {header_row}, found {len(headers)} headers")
+    
+    # Track which section we're in based on column order
+    # ORGA format: Hotel -> Golf -> Activity -> Transfer
+    golf_start = None
+    activity_start = None
+    transfer_start = None
+    
+    for col, header in sorted(headers.items()):
+        header_lower = header.lower()
+        
+        # Hotel section (columns 1-10 typically)
+        if header_lower == "days":
+            mapping.days = col
+        elif header_lower == "day":
+            mapping.day = col
+        elif header_lower == "date":
+            mapping.date = col
+        elif header_lower in ["region/city", "region", "city"]:
+            mapping.region_city = col
+        elif "hotel" in header_lower and "supplier" in header_lower:
+            mapping.hotel_supplier = col
+        elif header_lower == "room":
+            mapping.room = col
+        elif header_lower == "board":
+            mapping.board = col
+        
+        # Golf section - detect start by "golf supplier"
+        elif "golf" in header_lower and "supplier" in header_lower:
+            mapping.golf_supplier = col
+            golf_start = col
+        elif "golf" in header_lower and "course" in header_lower:
+            mapping.golf_course = col
+        elif "tee" in header_lower and "time" in header_lower:
+            mapping.tee_time = col
+        elif "driving" in header_lower and "range" in header_lower:
+            mapping.driving_range = col
+        elif "golf" in header_lower and "cart" in header_lower:
+            mapping.golf_cart = col
+        elif "rental" in header_lower and "set" in header_lower:
+            mapping.rental_set = col
+        
+        # Activity section - detect by "supplier" after golf section, or "activity"
+        elif header_lower == "supplier" and golf_start and not activity_start:
+            # First "Supplier" after golf section = Activity Supplier
+            mapping.activity_supplier = col
+            activity_start = col
+        elif header_lower == "activity":
+            mapping.activity_name = col
+            if not activity_start:
+                # Look back for supplier
+                for c in range(col - 1, max(0, col - 5), -1):
+                    if headers.get(c, "").lower() == "supplier":
+                        mapping.activity_supplier = c
+                        activity_start = c
+                        break
+        
+        # Transfer section - detect by "supplier" after activity, or "transport/transfers route"
+        elif header_lower == "supplier" and activity_start and not transfer_start:
+            mapping.transfer_supplier = col
+            transfer_start = col
+        elif "transport" in header_lower or "transfer" in header_lower and "route" in header_lower:
+            mapping.transfer_route = col
+            if not transfer_start:
+                # Look back for supplier
+                for c in range(col - 1, max(0, col - 3), -1):
+                    if headers.get(c, "").lower() == "supplier":
+                        mapping.transfer_supplier = c
+                        transfer_start = c
+                        break
+        elif header_lower == "service type":
+            mapping.service_type = col
+        elif "p/up" in header_lower or "pickup" in header_lower:
+            mapping.pickup_time = col
+        elif "d/off" in header_lower or "dropoff" in header_lower:
+            mapping.dropoff_time = col
+        elif "flight" in header_lower and "#" in header_lower:
+            mapping.flight_num = col
+        elif "flight" in header_lower and "time" in header_lower:
+            mapping.flight_time = col
+        elif "travel" in header_lower and "time" in header_lower:
+            mapping.travel_time = col
+    
+    # Handle "Notes" and "Status" columns - they appear in each section
+    # Find them relative to the section starts
+    for col, header in sorted(headers.items()):
+        header_lower = header.lower()
+        
+        if header_lower == "notes" or header_lower == "notes ":
+            # Determine which section this Notes belongs to
+            if transfer_start and col > transfer_start:
+                mapping.transfer_notes = col
+            elif activity_start and col > activity_start:
+                mapping.activity_notes = col
+            elif golf_start and col > golf_start:
+                mapping.golf_notes = col
+            elif col <= 10:  # Hotel section
+                mapping.hotel_notes = col
+        
+        elif header_lower == "status":
+            if transfer_start and col > transfer_start:
+                mapping.transfer_status = col
+            elif activity_start and col > activity_start:
+                mapping.activity_status = col
+            elif golf_start and col > golf_start:
+                mapping.golf_status = col
+            elif col <= 10:
+                mapping.hotel_status = col
+        
+        elif "invoice" in header_lower:
+            if transfer_start and col > transfer_start:
+                mapping.transfer_invoice = col
+            elif activity_start and col > activity_start:
+                mapping.activity_invoice = col
+            elif golf_start and col > golf_start:
+                mapping.golf_invoice = col
+            elif col <= 10:
+                mapping.hotel_invoice = col
+    
+    # Log detected columns for debugging
+    logger.info(f"Column mapping detected:")
+    logger.info(f"  Hotel: supplier={mapping.hotel_supplier}, room={mapping.room}, board={mapping.board}, notes={mapping.hotel_notes}")
+    logger.info(f"  Golf: supplier={mapping.golf_supplier}, course={mapping.golf_course}, tee_time={mapping.tee_time}")
+    logger.info(f"  Activity: supplier={mapping.activity_supplier}, name={mapping.activity_name}, time={mapping.activity_time}")
+    logger.info(f"  Transfer: supplier={mapping.transfer_supplier}, route={mapping.transfer_route}, pickup={mapping.pickup_time}")
+    
+    return mapping
+
+
+# Legacy column indices for backwards compatibility (will be overridden by detect_columns)
 COL_DAYS = 1
 COL_DAY = 2
 COL_DATE = 3
@@ -27,42 +216,42 @@ COL_REGION_CITY = 4
 COL_HOTEL_SUPPLIER = 5
 COL_ROOM = 6
 COL_BOARD = 7
-COL_HOTEL_STATUS = 8
-COL_HOTEL_NOTES = 20
-COL_HOTEL_STATUS2 = 21
-COL_HOTEL_INVOICE = 22
+COL_HOTEL_STATUS = 9
+COL_HOTEL_NOTES = 8
+COL_HOTEL_STATUS2 = 9
+COL_HOTEL_INVOICE = 10
 
-# Golf columns
-COL_GOLF_SUPPLIER = 23
-COL_GOLF_COURSE = 24
-COL_TEE_TIME = 25
-COL_DRIVING_RANGE = 26
-COL_GOLF_CART = 27
-COL_RENTAL_SET = 28
-COL_GOLF_NOTES = 29
-COL_GOLF_STATUS = 30
-COL_GOLF_INVOICE = 31
+# Golf columns (compact format)
+COL_GOLF_SUPPLIER = 11
+COL_GOLF_COURSE = 12
+COL_TEE_TIME = 13
+COL_DRIVING_RANGE = 14
+COL_GOLF_CART = 15
+COL_RENTAL_SET = 16
+COL_GOLF_NOTES = 17
+COL_GOLF_STATUS = 18
+COL_GOLF_INVOICE = 19
 
-# Activity columns
-COL_ACTIVITY_SUPPLIER = 32
-COL_ACTIVITY_NAME = 33
-COL_ACTIVITY_TIME = 34
-COL_ACTIVITY_NOTES = 35
-COL_ACTIVITY_STATUS = 36
-COL_ACTIVITY_INVOICE = 37
+# Activity columns (compact format)
+COL_ACTIVITY_SUPPLIER = 20
+COL_ACTIVITY_NAME = 21
+COL_ACTIVITY_TIME = 22
+COL_ACTIVITY_NOTES = 23
+COL_ACTIVITY_STATUS = 24
+COL_ACTIVITY_INVOICE = 25
 
-# Transfer columns
-COL_TRANSFER_SUPPLIER = 38
-COL_TRANSFER_ROUTE = 39
-COL_SERVICE_TYPE = 40
-COL_PICKUP_TIME = 41
-COL_DROPOFF_TIME = 42
-COL_FLIGHT_NUM = 43
-COL_FLIGHT_TIME = 44
-COL_TRAVEL_TIME = 45
-COL_TRANSFER_NOTES = 46
-COL_TRANSFER_STATUS = 47
-COL_TRANSFER_INVOICE = 48
+# Transfer columns (compact format)
+COL_TRANSFER_SUPPLIER = 26
+COL_TRANSFER_ROUTE = 27
+COL_SERVICE_TYPE = 28
+COL_PICKUP_TIME = 29
+COL_DROPOFF_TIME = 30
+COL_FLIGHT_NUM = 31
+COL_FLIGHT_TIME = 32
+COL_TRAVEL_TIME = 33
+COL_TRANSFER_NOTES = 34
+COL_TRANSFER_STATUS = 35
+COL_TRANSFER_INVOICE = 36
 
 
 def get_cell_value(ws: Worksheet, row: int, col: int) -> Optional[str]:
@@ -97,7 +286,7 @@ def parse_date(val: Any) -> Optional[date]:
 
 def find_header_row(ws: Worksheet) -> int:
     """Find the row containing column headers."""
-    for row in range(1, 20):
+    for row in range(1, 30):  # Extended range to find headers in different formats
         # Look for the "Days" header in column 1
         val = get_cell_value(ws, row, COL_DAYS)
         if val and str(val).lower() == "days":
@@ -132,13 +321,43 @@ def parse_orga(file_path: str) -> ParsedORGA:
     
     wb = load_workbook(file_path, data_only=True)
     
-    # Find the correct sheet (prefer "Orga" sheets)
+    # Find the correct sheet - prefer sheets marked as "correct" or with actual data
     ws = None
+    orga_sheets = []
+    
     for sheet_name in wb.sheetnames:
         if "orga" in sheet_name.lower():
-            ws = wb[sheet_name]
-            logger.info(f"Using sheet: {sheet_name}")
-            break
+            orga_sheets.append(sheet_name)
+            # Prefer sheets with "correct" in the name
+            if "correct" in sheet_name.lower():
+                ws = wb[sheet_name]
+                logger.info(f"Using sheet (marked as correct): {sheet_name}")
+                break
+    
+    # If no "correct" sheet, find one with actual data
+    if ws is None and orga_sheets:
+        for sheet_name in orga_sheets:
+            test_ws = wb[sheet_name]
+            # Check if this sheet has data in the supplier columns
+            # Try different header row positions (10 or 19)
+            for header_row in [10, 19]:
+                for data_row in [header_row + 2, header_row + 1]:
+                    if data_row <= test_ws.max_row:
+                        # Check hotel supplier column (5)
+                        hotel = test_ws.cell(data_row, 5).value
+                        if hotel and str(hotel).lower() not in ['hotel supplier', 'e.g', 'example']:
+                            ws = test_ws
+                            logger.info(f"Using sheet (has data): {sheet_name}")
+                            break
+                if ws:
+                    break
+            if ws:
+                break
+        
+        # Fall back to first Orga sheet if none had data
+        if ws is None:
+            ws = wb[orga_sheets[0]]
+            logger.info(f"Using sheet (first Orga): {orga_sheets[0]}")
     
     if ws is None:
         ws = wb.active
@@ -169,10 +388,13 @@ def parse_orga(file_path: str) -> ParsedORGA:
     data_start = find_data_start_row(ws, header_row)
     logger.info(f"Header row: {header_row}, Data starts: {data_start}")
     
-    # Collect all data rows
+    # Auto-detect column positions from header row
+    cols = detect_columns(ws, header_row)
+    
+    # Collect all data rows using detected column positions
     data_rows = []
     for row in range(data_start, ws.max_row + 1):
-        date_val = get_cell_value(ws, row, COL_DATE)
+        date_val = get_cell_value(ws, row, cols.date)
         current_date = parse_date(date_val)
         
         if current_date is None:
@@ -185,39 +407,44 @@ def parse_orga(file_path: str) -> ParsedORGA:
         data_rows.append({
             "row": row,
             "date": current_date,
-            "days": get_cell_value(ws, row, COL_DAYS),
+            "days": get_cell_value(ws, row, cols.days),
             # Hotel
-            "region_city": get_cell_value(ws, row, COL_REGION_CITY),
-            "hotel_supplier": get_cell_value(ws, row, COL_HOTEL_SUPPLIER),
-            "room": get_cell_value(ws, row, COL_ROOM),
-            "board": get_cell_value(ws, row, COL_BOARD),
-            "hotel_status": get_cell_value(ws, row, COL_HOTEL_STATUS),
-            "hotel_notes": get_cell_value(ws, row, COL_HOTEL_NOTES),
+            "region_city": get_cell_value(ws, row, cols.region_city),
+            "hotel_supplier": get_cell_value(ws, row, cols.hotel_supplier),
+            "room": get_cell_value(ws, row, cols.room),
+            "board": get_cell_value(ws, row, cols.board),
+            "hotel_status": get_cell_value(ws, row, cols.hotel_status),
+            "hotel_notes": get_cell_value(ws, row, cols.hotel_notes),
             # Golf
-            "golf_supplier": get_cell_value(ws, row, COL_GOLF_SUPPLIER),
-            "golf_course": get_cell_value(ws, row, COL_GOLF_COURSE),
-            "tee_time": get_cell_value(ws, row, COL_TEE_TIME),
-            "golf_cart": get_cell_value(ws, row, COL_GOLF_CART),
-            "rental_set": get_cell_value(ws, row, COL_RENTAL_SET),
-            "golf_notes": get_cell_value(ws, row, COL_GOLF_NOTES),
+            "golf_supplier": get_cell_value(ws, row, cols.golf_supplier),
+            "golf_course": get_cell_value(ws, row, cols.golf_course),
+            "tee_time": get_cell_value(ws, row, cols.tee_time),
+            "golf_cart": get_cell_value(ws, row, cols.golf_cart) if cols.golf_cart else None,
+            "rental_set": get_cell_value(ws, row, cols.rental_set) if cols.rental_set else None,
+            "golf_notes": get_cell_value(ws, row, cols.golf_notes) if cols.golf_notes else None,
             # Activity
-            "activity_supplier": get_cell_value(ws, row, COL_ACTIVITY_SUPPLIER),
-            "activity_name": get_cell_value(ws, row, COL_ACTIVITY_NAME),
-            "activity_time": get_cell_value(ws, row, COL_ACTIVITY_TIME),
-            "activity_notes": get_cell_value(ws, row, COL_ACTIVITY_NOTES),
+            "activity_supplier": get_cell_value(ws, row, cols.activity_supplier),
+            "activity_name": get_cell_value(ws, row, cols.activity_name) if cols.activity_name else None,
+            "activity_time": get_cell_value(ws, row, cols.activity_time) if cols.activity_time else None,
+            "activity_notes": get_cell_value(ws, row, cols.activity_notes) if cols.activity_notes else None,
             # Transfer
-            "transfer_supplier": get_cell_value(ws, row, COL_TRANSFER_SUPPLIER),
-            "transfer_route": get_cell_value(ws, row, COL_TRANSFER_ROUTE),
-            "service_type": get_cell_value(ws, row, COL_SERVICE_TYPE),
-            "pickup_time": get_cell_value(ws, row, COL_PICKUP_TIME),
-            "dropoff_time": get_cell_value(ws, row, COL_DROPOFF_TIME),
-            "flight_num": get_cell_value(ws, row, COL_FLIGHT_NUM),
-            "flight_time": get_cell_value(ws, row, COL_FLIGHT_TIME),
-            "transfer_notes": get_cell_value(ws, row, COL_TRANSFER_NOTES),
-            "transfer_status": get_cell_value(ws, row, COL_TRANSFER_STATUS),
+            "transfer_supplier": get_cell_value(ws, row, cols.transfer_supplier),
+            "transfer_route": get_cell_value(ws, row, cols.transfer_route) if cols.transfer_route else None,
+            "service_type": get_cell_value(ws, row, cols.service_type) if cols.service_type else None,
+            "pickup_time": get_cell_value(ws, row, cols.pickup_time) if cols.pickup_time else None,
+            "dropoff_time": get_cell_value(ws, row, cols.dropoff_time) if cols.dropoff_time else None,
+            "flight_num": get_cell_value(ws, row, cols.flight_num) if cols.flight_num else None,
+            "flight_time": get_cell_value(ws, row, cols.flight_time) if cols.flight_time else None,
+            "transfer_notes": get_cell_value(ws, row, cols.transfer_notes) if cols.transfer_notes else None,
+            "transfer_status": get_cell_value(ws, row, cols.transfer_status) if cols.transfer_status else None,
         })
     
     logger.info(f"Found {len(data_rows)} data rows")
+    
+    # Log first data row for debugging
+    if data_rows:
+        first = data_rows[0]
+        logger.info(f"First data row sample - Hotel: {first.get('hotel_supplier')}, Activity: {first.get('activity_supplier')}, Transfer: {first.get('transfer_supplier')}")
     
     # Parse hotels - group consecutive stays at the same hotel
     result.hotels = parse_hotels(data_rows)
