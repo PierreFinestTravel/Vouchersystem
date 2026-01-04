@@ -7,5 +7,6 @@ PyPDF2==3.0.1
 Pillow==10.2.0
 Jinja2==3.1.3
 aiofiles==23.2.1
+PyYAML==6.0.1
 docx2pdf==0.1.8  # For PDF conversion using Microsoft Word (Windows)
 

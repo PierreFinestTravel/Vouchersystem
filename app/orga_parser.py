@@ -15,8 +15,48 @@ from .models import (
     CarRentalVoucher, GolfVoucher
 )
 from .supplier_info import get_supplier_info
+from .name_mapper import (
+    get_canonical_name, get_hotel_name, get_golf_name, 
+    get_activity_name, get_restaurant_name, get_transfer_name,
+    get_car_rental_name, clear_suspicious_names_log
+)
 
 logger = logging.getLogger(__name__)
+
+
+def detect_region(file_path: str) -> str:
+    """Detect if this is an SA (South Africa) or EU (Europe) trip.
+    
+    Looks at the filename and ORGA metadata to determine the region.
+    This affects which voucher types are generated.
+    
+    Returns: 'SA' or 'EU'
+    """
+    filename = file_path.replace('\\', '/').split('/')[-1].upper()
+    
+    # Check filename patterns
+    if " SA " in filename or " SA-" in filename or filename.endswith(" SA.XLSX"):
+        return "SA"
+    if " EU " in filename or " EU-" in filename or filename.endswith(" EU.XLSX"):
+        return "EU"
+    
+    # Check for known EU destinations in filename
+    eu_destinations = ["PORTUGAL", "SPAIN", "SCOTLAND", "IRELAND", "TURKEY", "GREECE", 
+                       "CYPRUS", "MOROCCO", "EGYPT", "CANARY", "ALGARVE", "VILAMOURA",
+                       "FAO", "LIS", "AGP", "DUB", "EDI"]
+    for dest in eu_destinations:
+        if dest in filename:
+            return "EU"
+    
+    # Check for known SA airports/destinations in filename
+    sa_destinations = ["CPT", "JNB", "DUR", "PLZ", "GRJ", "CAPE", "JOHANNESBURG", 
+                       "DURBAN", "KRUGER", "GARDEN ROUTE", "STELLENBOSCH"]
+    for dest in sa_destinations:
+        if dest in filename:
+            return "SA"
+    
+    # Default to SA
+    return "SA"
 
 
 class ColumnMapping:
@@ -365,6 +405,10 @@ def parse_orga(file_path: str) -> ParsedORGA:
     
     result = ParsedORGA()
     
+    # Detect region (SA or EU) from filename
+    result.region = detect_region(file_path)
+    logger.info(f"Detected region: {result.region}")
+    
     # Extract metadata from header rows
     for row in range(1, 10):
         label = get_cell_value(ws, row, 1)
@@ -690,14 +734,18 @@ def parse_car_rentals(data_rows: List[Dict]) -> List[CarRentalVoucher]:
 
 
 def parse_activities(data_rows: List[Dict]) -> List[ActivityVoucher]:
-    """Parse activities from data rows, grouping by supplier."""
+    """Parse activities from data rows, grouping by supplier.
+    
+    IMPORTANT: Skip entries marked with (TR) - these are table reservations only.
+    """
     activities_by_supplier: Dict[str, ActivityVoucher] = {}
     
     # Keywords that indicate restaurant (NOT activity)
     restaurant_only_keywords = ["dinner", "lunch"]
     
     # Keywords that indicate activity (even if at a restaurant-sounding venue)
-    activity_keywords = ["tasting", "tour", "tickets", "watching", "drive", "panorama", "route", "safari"]
+    activity_keywords = ["tasting", "tour", "tickets", "watching", "drive", "panorama", "route", "safari", 
+                         "cave", "elephant", "meerkat", "helicopter", "boat", "cruise", "island"]
     
     for row in data_rows:
         supplier = row.get("activity_supplier")
@@ -716,6 +764,11 @@ def parse_activities(data_rows: List[Dict]) -> List[ActivityVoucher]:
             act = activities[idx] if idx < len(activities) else ""
             time = times[idx] if idx < len(times) else ""
             notes = notes_list[idx] if idx < len(notes_list) else ""
+            
+            # CRITICAL: Skip table reservations marked with (TR)
+            if is_table_reservation(sup):
+                logger.debug(f"Skipping table reservation (no activity voucher): {sup}")
+                continue
             
             combined_text = (sup + " " + act + " " + notes).lower()
             
@@ -738,7 +791,7 @@ def parse_activities(data_rows: List[Dict]) -> List[ActivityVoucher]:
             if sup_key not in activities_by_supplier:
                 info = get_supplier_info(sup)
                 activities_by_supplier[sup_key] = ActivityVoucher(
-                    supplier=sup,
+                    supplier=sup,  # Keep supplier name EXACTLY as in ORGA
                     address=info.get("address", ""),
                     phone=info.get("phone", ""),
                     gps=info.get("gps", "")
@@ -755,8 +808,57 @@ def parse_activities(data_rows: List[Dict]) -> List[ActivityVoucher]:
     return list(activities_by_supplier.values())
 
 
+def is_table_reservation(supplier_name: str) -> bool:
+    """Check if supplier name indicates a table reservation (TR) only.
+    
+    Table reservations marked with (TR) or TR suffix should NOT get vouchers.
+    These are just reservations, not prepaid/included services.
+    
+    Patterns detected:
+    - "Restaurant Name (TR)"
+    - "Restaurant Name TR"
+    - "(TR) Restaurant Name"
+    - "Restaurant (Table reservation)"
+    
+    IMPORTANT: Do NOT match transfer-related patterns like "TRF" or "Transfer"
+    """
+    if not supplier_name:
+        return False
+    
+    name_upper = supplier_name.upper().strip()
+    
+    # Check for "(TR)" suffix or prefix
+    if name_upper.endswith("(TR)") or name_upper.startswith("(TR)"):
+        logger.info(f"Skipping table reservation: {supplier_name}")
+        return True
+    
+    # Check for " TR" at end (standalone TR, not part of another word)
+    if name_upper.endswith(" TR"):
+        logger.info(f"Skipping table reservation: {supplier_name}")
+        return True
+    
+    # Check for "(Table reservation)" or similar
+    if "(TABLE RESERVATION)" in name_upper:
+        logger.info(f"Skipping table reservation: {supplier_name}")
+        return True
+    
+    # Use regex for more complex patterns
+    import re
+    # Match standalone TR (not TRF, TRANSFER, etc.)
+    # Pattern: word boundary + TR + (end or space or punctuation)
+    if re.search(r'\bTR\b(?!F|ANS)', name_upper):
+        logger.info(f"Skipping table reservation: {supplier_name}")
+        return True
+    
+    return False
+
+
 def parse_restaurants(data_rows: List[Dict]) -> List[RestaurantVoucher]:
-    """Parse restaurant vouchers from data rows."""
+    """Parse restaurant vouchers from data rows.
+    
+    IMPORTANT: Skip entries marked with (TR) - these are table reservations only,
+    not prepaid services, so they don't need vouchers.
+    """
     restaurants = []
     
     # Keywords for restaurant meals only
@@ -783,6 +885,12 @@ def parse_restaurants(data_rows: List[Dict]) -> List[RestaurantVoucher]:
             time = times[idx] if idx < len(times) else ""
             notes = notes_list[idx] if idx < len(notes_list) else ""
             
+            # CRITICAL: Skip table reservations marked with (TR)
+            # These are just reservations, NOT prepaid services - no voucher needed
+            if is_table_reservation(sup):
+                logger.debug(f"Skipping table reservation (no voucher): {sup}")
+                continue
+            
             combined_text = (sup + " " + act + " " + notes).lower()
             
             # Check if this is a restaurant meal
@@ -798,7 +906,7 @@ def parse_restaurants(data_rows: List[Dict]) -> List[RestaurantVoucher]:
             info = get_supplier_info(sup)
             
             restaurant = RestaurantVoucher(
-                supplier=sup,
+                supplier=sup,  # Keep supplier name EXACTLY as in ORGA
                 date=row["date"],
                 time=time,
                 notes=notes or act,  # Include activity description as notes
@@ -812,31 +920,53 @@ def parse_restaurants(data_rows: List[Dict]) -> List[RestaurantVoucher]:
 
 
 def parse_golf(data_rows: List[Dict]) -> List[GolfVoucher]:
-    """Parse golf vouchers from data rows."""
+    """Parse golf vouchers from data rows.
+    
+    Golf vouchers are generated when golf_supplier is present.
+    golf_course is used if available, otherwise supplier name is used.
+    """
     golf_vouchers = []
     
     for row in data_rows:
         supplier = row.get("golf_supplier")
         course = row.get("golf_course")
+        tee_time = row.get("tee_time")
         
-        if not supplier or not course:
+        # Need at least supplier OR course to generate a golf voucher
+        if not supplier and not course:
             continue
         
-        info = get_supplier_info(supplier)
+        # Use supplier as course name if course not provided, and vice versa
+        if not supplier:
+            supplier = course
+        if not course:
+            course = supplier
         
-        golf = GolfVoucher(
-            supplier=supplier,
-            course=course,
-            date=row["date"],
-            tee_time=row.get("tee_time", ""),
-            cart=row.get("golf_cart", ""),
-            rental_set=row.get("rental_set", ""),
-            notes=row.get("golf_notes", ""),
-            address=info.get("address", ""),
-            phone=info.get("phone", ""),
-            gps=info.get("gps", "")
-        )
-        golf_vouchers.append(golf)
+        # Handle multi-line entries (multiple tee times on same day)
+        suppliers = [s.strip() for s in str(supplier).split('\n') if s.strip()]
+        courses = [c.strip() for c in str(course).split('\n') if c.strip()]
+        tee_times = [t.strip() for t in str(tee_time or "").split('\n') if t.strip()]
+        
+        for idx, sup in enumerate(suppliers):
+            crs = courses[idx] if idx < len(courses) else courses[0] if courses else sup
+            tt = tee_times[idx] if idx < len(tee_times) else ""
+            
+            info = get_supplier_info(sup)
+            
+            golf = GolfVoucher(
+                supplier=sup,  # Keep supplier name EXACTLY as in ORGA
+                course=crs,
+                date=row["date"],
+                tee_time=tt,
+                cart=row.get("golf_cart", "") or "",
+                rental_set=row.get("rental_set", "") or "",
+                notes=row.get("golf_notes", "") or "",
+                address=info.get("address", ""),
+                phone=info.get("phone", ""),
+                gps=info.get("gps", "")
+            )
+            golf_vouchers.append(golf)
+            logger.info(f"Parsed golf: {sup} - {crs} @ {tt}")
     
     return golf_vouchers
 

@@ -7,13 +7,16 @@ import zipfile
 from pathlib import Path
 from typing import Optional, List
 
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request, BackgroundTasks
+from fastapi.responses import HTMLResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+import io
 
 from .orga_parser import parse_orga
 from .voucher_generator import VoucherGenerator
 from .pdf_merger import process_vouchers_to_pdf
+from .validation import validate_and_report, get_validation_summary
+from .name_mapper import clear_suspicious_names_log
 from .client_parser import (
     parse_single_client_file, 
     parse_group_client_file,
@@ -675,10 +678,23 @@ async def generate_vouchers(
         
         # Parse ORGA
         try:
+            clear_suspicious_names_log()  # Clear log for new run
             parsed_data = parse_orga(orga_path)
         except Exception as e:
             logger.error(f"Failed to parse ORGA: {e}")
             raise HTTPException(status_code=400, detail=f"Failed to parse ORGA file: {str(e)}")
+        
+        # Pre-flight validation
+        logger.info("Running pre-flight validation...")
+        summary = get_validation_summary(parsed_data)
+        logger.info(f"Validation summary: {summary}")
+        
+        passed, report_path = validate_and_report(parsed_data, orga_path, temp_dir)
+        if not passed:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Validation failed. Check debug report: {report_path}"
+            )
         
         # Generate vouchers based on mode
         if mode == 'single':
@@ -691,8 +707,18 @@ async def generate_vouchers(
             )
     
     except HTTPException:
+        # Clean up temp dir on HTTP error
+        try:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        except:
+            pass
         raise
     except Exception as e:
+        # Clean up temp dir on unexpected error
+        try:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        except:
+            pass
         logger.exception("Unexpected error")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
@@ -762,11 +788,24 @@ async def generate_single_mode(parsed_data, client_path: str, temp_dir: str, tri
         logger.error(f"PDF conversion failed: {e}")
         raise HTTPException(status_code=500, detail=f"PDF conversion failed: {str(e)}")
     
-    return FileResponse(
-        path=final_pdf_path,
-        filename=final_pdf_name,
+    # Read PDF into memory for clean download (no temp path exposure)
+    with open(final_pdf_path, 'rb') as f:
+        pdf_content = f.read()
+    
+    # Clean up temp directory
+    try:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+    except Exception as e:
+        logger.warning(f"Failed to cleanup temp dir: {e}")
+    
+    # Return as streaming response (direct download)
+    return StreamingResponse(
+        io.BytesIO(pdf_content),
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{final_pdf_name}"'}
+        headers={
+            "Content-Disposition": f'attachment; filename="{final_pdf_name}"',
+            "Content-Length": str(len(pdf_content))
+        }
     )
 
 
@@ -854,28 +893,53 @@ async def generate_group_mode(parsed_data, client_path: str, temp_dir: str, trip
     # If only one room, return single PDF
     if len(pdf_files) == 1:
         path, name = pdf_files[0]
-        return FileResponse(
-            path=path,
-            filename=name,
+        
+        # Read PDF into memory for clean download
+        with open(path, 'rb') as f:
+            pdf_content = f.read()
+        
+        # Clean up temp directory
+        try:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        except Exception as e:
+            logger.warning(f"Failed to cleanup temp dir: {e}")
+        
+        return StreamingResponse(
+            io.BytesIO(pdf_content),
             media_type="application/pdf",
-            headers={"Content-Disposition": f'attachment; filename="{name}"'}
+            headers={
+                "Content-Disposition": f'attachment; filename="{name}"',
+                "Content-Length": str(len(pdf_content))
+            }
         )
     
-    # Multiple rooms - create ZIP
+    # Multiple rooms - create ZIP with only PDFs (clean structure)
     zip_name = f"{trip_id}_Group_Vouchers.zip"
-    zip_path = os.path.join(temp_dir, zip_name)
     
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+    # Create ZIP in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
         for pdf_path, pdf_name in pdf_files:
+            # Write PDF directly to ZIP root (no subfolders)
             zf.write(pdf_path, pdf_name)
     
-    logger.info(f"Created ZIP with {len(pdf_files)} PDFs: {zip_path}")
+    logger.info(f"Created ZIP with {len(pdf_files)} PDFs")
     
-    return FileResponse(
-        path=zip_path,
-        filename=zip_name,
+    # Clean up temp directory
+    try:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+    except Exception as e:
+        logger.warning(f"Failed to cleanup temp dir: {e}")
+    
+    # Return ZIP as streaming response (direct download)
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer,
         media_type="application/zip",
-        headers={"Content-Disposition": f'attachment; filename="{zip_name}"'}
+        headers={
+            "Content-Disposition": f'attachment; filename="{zip_name}"',
+            "Content-Length": str(zip_buffer.getbuffer().nbytes)
+        }
     )
 
 

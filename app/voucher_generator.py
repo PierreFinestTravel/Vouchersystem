@@ -98,21 +98,31 @@ class VoucherGenerator:
         group_text: str = "",
         output_dir: str = None
     ) -> List[Tuple[str, str, date]]:
-        """Generate all vouchers from parsed ORGA data."""
+        """Generate all vouchers from parsed ORGA data.
+        
+        Voucher types are filtered based on region (SA/EU):
+        - SA: Hotels, Golf, Activities, Wine Tastings, Restaurants (prepaid), Transfers, Car Rental
+        - EU: Hotels, Golf, Transfers, Rental Clubs (NO Activity/Restaurant vouchers per template)
+        
+        Based on /Vouchers source of truth folder.
+        """
         if output_dir is None:
             output_dir = tempfile.mkdtemp(prefix="vouchers_")
         
         os.makedirs(output_dir, exist_ok=True)
         self.generated_vouchers = []
         
-        # Generate hotel vouchers
+        region = parsed_data.region  # 'SA' or 'EU'
+        logger.info(f"Generating vouchers for region: {region}")
+        
+        # Generate hotel vouchers (BOTH SA and EU)
         for i, hotel in enumerate(parsed_data.hotels):
             path = os.path.join(output_dir, f"hotel_{i+1}_{self._safe_filename(hotel.supplier)}.docx")
             self._generate_hotel_voucher(hotel, traveller_names, ref_no, path)
             self.generated_vouchers.append((path, "hotel", hotel.check_in))
             logger.info(f"Generated hotel voucher: {hotel.supplier}")
         
-        # Generate transfer vouchers
+        # Generate transfer vouchers (BOTH SA and EU)
         for i, transfer in enumerate(parsed_data.transfers):
             path = os.path.join(output_dir, f"transfer_{i+1}_{self._safe_filename(transfer.supplier)}.docx")
             self._generate_transfer_voucher(transfer, traveller_names, ref_no, path)
@@ -120,29 +130,40 @@ class VoucherGenerator:
             self.generated_vouchers.append((path, "transfer", earliest))
             logger.info(f"Generated transfer voucher: {transfer.supplier}")
         
-        # Generate car rental vouchers
-        for i, car in enumerate(parsed_data.car_rentals):
-            path = os.path.join(output_dir, f"car_rental_{i+1}_{self._safe_filename(car.supplier)}.docx")
-            self._generate_car_rental_voucher(car, traveller_names, ref_no, group_text, path)
-            self.generated_vouchers.append((path, "car_rental", car.pickup_date))
-            logger.info(f"Generated car rental voucher: {car.supplier}")
+        # Generate car rental vouchers (SA only - per /Vouchers source of truth)
+        if region == "SA":
+            for i, car in enumerate(parsed_data.car_rentals):
+                path = os.path.join(output_dir, f"car_rental_{i+1}_{self._safe_filename(car.supplier)}.docx")
+                self._generate_car_rental_voucher(car, traveller_names, ref_no, group_text, path)
+                self.generated_vouchers.append((path, "car_rental", car.pickup_date))
+                logger.info(f"Generated car rental voucher: {car.supplier}")
+        elif parsed_data.car_rentals:
+            logger.info(f"Skipping {len(parsed_data.car_rentals)} car rental vouchers (EU region - not required)")
         
-        # Generate activity vouchers
-        for i, activity in enumerate(parsed_data.activities):
-            path = os.path.join(output_dir, f"activity_{i+1}_{self._safe_filename(activity.supplier)}.docx")
-            self._generate_activity_voucher(activity, traveller_names, ref_no, path)
-            earliest = min(e.date for e in activity.entries) if activity.entries else date.today()
-            self.generated_vouchers.append((path, "activity", earliest))
-            logger.info(f"Generated activity voucher: {activity.supplier}")
+        # Generate activity vouchers (SA only - per /Vouchers template overview)
+        # EU trips do NOT get activity vouchers per "FIT EU VOUCHER TEMPLATE" which says "No Activity Voucher Needed"
+        if region == "SA":
+            for i, activity in enumerate(parsed_data.activities):
+                path = os.path.join(output_dir, f"activity_{i+1}_{self._safe_filename(activity.supplier)}.docx")
+                self._generate_activity_voucher(activity, traveller_names, ref_no, path)
+                earliest = min(e.date for e in activity.entries) if activity.entries else date.today()
+                self.generated_vouchers.append((path, "activity", earliest))
+                logger.info(f"Generated activity voucher: {activity.supplier}")
+        elif parsed_data.activities:
+            logger.info(f"Skipping {len(parsed_data.activities)} activity vouchers (EU region - not required per template)")
         
-        # Generate restaurant vouchers
-        for i, restaurant in enumerate(parsed_data.restaurants):
-            path = os.path.join(output_dir, f"restaurant_{i+1}_{self._safe_filename(restaurant.supplier)}.docx")
-            self._generate_restaurant_voucher(restaurant, traveller_names, ref_no, path)
-            self.generated_vouchers.append((path, "restaurant", restaurant.date))
-            logger.info(f"Generated restaurant voucher: {restaurant.supplier}")
+        # Generate restaurant vouchers (SA only - prepaid meals)
+        # EU trips do NOT get restaurant vouchers per template overview
+        if region == "SA":
+            for i, restaurant in enumerate(parsed_data.restaurants):
+                path = os.path.join(output_dir, f"restaurant_{i+1}_{self._safe_filename(restaurant.supplier)}.docx")
+                self._generate_restaurant_voucher(restaurant, traveller_names, ref_no, path)
+                self.generated_vouchers.append((path, "restaurant", restaurant.date))
+                logger.info(f"Generated restaurant voucher: {restaurant.supplier}")
+        elif parsed_data.restaurants:
+            logger.info(f"Skipping {len(parsed_data.restaurants)} restaurant vouchers (EU region - not required)")
         
-        # Generate golf vouchers
+        # Generate golf vouchers (BOTH SA and EU)
         for i, golf in enumerate(parsed_data.golf):
             path = os.path.join(output_dir, f"golf_{i+1}_{self._safe_filename(golf.supplier)}.docx")
             self._generate_golf_voucher(golf, traveller_names, ref_no, path)

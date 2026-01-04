@@ -152,6 +152,10 @@ class ParsedORGA:
     car_rentals: List[CarRentalVoucher] = field(default_factory=list)
     golf: List[GolfVoucher] = field(default_factory=list)
     
+    # Region detection (SA = South Africa, EU = Europe)
+    # This affects which voucher types are generated
+    region: str = "SA"  # Default to SA
+    
     # Metadata from ORGA header (for reference only - NOT for voucher names)
     # IMPORTANT: These fields are NOT used for traveller names on vouchers
     # Traveller names MUST come from uploaded client files (SINGLE or GROUP mode)

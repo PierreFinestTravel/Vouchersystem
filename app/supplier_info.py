@@ -1,199 +1,160 @@
 """Supplier contact information database.
 
-This module contains known supplier details (address, phone, GPS) that are used
-to fill in voucher headers. Information is derived from the example vouchers.
+This module reads all supplier information from a single YAML file:
+    config/suppliers.yaml
+
+This is the SINGLE SOURCE OF TRUTH for:
+- Supplier name mappings (ORGA name -> Voucher name)
+- Contact details (address, phone, GPS)
+
+Your team can edit suppliers.yaml directly - no coding required!
 """
+import logging
+import os
+from pathlib import Path
+from typing import Dict, Optional
+import yaml
 
-SUPPLIER_INFO = {
-    # Hotels
-    "home suite station house": {
-        "display_name": "HOME SUITE HOTEL STATION HOUSE",
-        "address": "19 Kloof Rd Cape Town",
-        "phone": "+27 (0)82 362 2603",
-        "gps": "S 33° 55' 9.119\", E 18° 23' 13.740\""
-    },
-    "whale rock lodge": {
-        "display_name": "WHALE ROCK LUXURY LODGE",
-        "address": "37 Springfield Avenue, Westcliff, Hermanus",
-        "phone": "+27 (0)28 313 0014",
-        "gps": "S 34° 24' 50.4\", E 19° 15' 21.6\""
-    },
-    "whale rock": {
-        "display_name": "WHALE ROCK LUXURY LODGE",
-        "address": "37 Springfield Avenue, Westcliff, Hermanus",
-        "phone": "+27 (0)28 313 0014",
-        "gps": "S 34° 24' 50.4\", E 19° 15' 21.6\""
-    },
-    "mgm wilderness": {
-        "display_name": "MGM WILDERNESS",
-        "address": "29 Roland Krynauw St, Wilderness, 6560",
-        "phone": "+27 (0) 83 292 0753",
-        "gps": "S 33.9959°, E 22.5875°"
-    },
-    "wedgeview": {
-        "display_name": "WEDGEVIEW COUNTRY HOUSE & SPA",
-        "address": "Bonniemile, Stellenbosch, 7604",
-        "phone": "+27 (0)21 881 3525",
-        "gps": "S 33° 58' 5.464\", E 18° 51' 37.828\""
-    },
-    "umlani": {
-        "display_name": "UMLANI BUSH CAMP",
-        "address": "Timbavati Game Reserve Hoedspruit",
-        "phone": "+27 (0)21 785 5547",
-        "gps": "S 24° 19' 54.588\", E 31° 18' 29.808\""
-    },
-    "ukuthula bush lodge": {
-        "display_name": "UKUTHULA BUSH LODGE",
-        "address": "Hoedspruit, Limpopo",
-        "phone": "+27 (0)15 793 0267",
-        "gps": "S 24° 21' 36.0\", E 30° 58' 12.0\""
-    },
-    "ukuthula": {
-        "display_name": "UKUTHULA BUSH LODGE",
-        "address": "Hoedspruit, Limpopo",
-        "phone": "+27 (0)15 793 0267",
-        "gps": "S 24° 21' 36.0\", E 30° 58' 12.0\""
-    },
-    
-    # Transfer Companies
-    "osprey tours": {
-        "display_name": "OSPREY TOURS",
-        "address": "",
-        "phone": "+27 (0)81 032 7936",
-        "gps": ""
-    },
-    "percy tours": {
-        "display_name": "PERCY TOURS",
-        "address": "46 Main Road, Hermanus, South Africa 7200",
-        "phone": "+27(0)72 062 8500",
-        "gps": "S 34.43370819091797, E 19.224746704101562"
-    },
-    
-    # Car Rental
-    "pace car rental": {
-        "display_name": "PACE CAR RENTAL",
-        "address": "Unit 6 Airport Business Park, Michigan Road Airport Industria Cape Town WP 7525 South Africa",
-        "phone": "+27 (0)21 386 2411",
-        "gps": "S 33.9761, E 18.5650"
-    },
-    "cabs car": {
-        "display_name": "CABS CAR RENTAL",
-        "address": "Cape Town International Airport",
-        "phone": "+27 (0)21 380 5500",
-        "gps": ""
-    },
-    
-    # Activities
-    "table mountain": {
-        "display_name": "TABLE MOUNTAIN AERIAL CABLEWAY",
-        "address": "Tafelberg Rd, Gardens, Cape Town, 8001",
-        "phone": "+27 (0)21 424 8181",
-        "gps": "S 33.9483°, E18.4029°"
-    },
-    "table mountain tickets": {
-        "display_name": "TABLE MOUNTAIN AERIAL CABLEWAY",
-        "address": "Tafelberg Rd, Gardens, Cape Town, 8001",
-        "phone": "+27 (0)21 424 8181",
-        "gps": "S 33.9483°, E18.4029°"
-    },
-    "ernie els": {
-        "display_name": "ERNIE ELS WINES",
-        "address": "Annandale Road, Stellenbosch",
-        "phone": "+27 (0)21 881 3588",
-        "gps": "S 33° 56' 24.0\", E 18° 52' 12.0\""
-    },
-    "guardian peak": {
-        "display_name": "GUARDIAN PEAK GRILL & WINERY",
-        "address": "Annandale Road, Stellenbosch",
-        "phone": "+27 (0)21 881 3899",
-        "gps": "S 33° 56' 30.0\", E 18° 52' 18.0\""
-    },
-    
-    # Restaurants
-    "the bungalow": {
-        "display_name": "THE BUNGALOW",
-        "address": "3 Victoria Road, Clifton, Cape Town",
-        "phone": "+27 (0)21 438 2018",
-        "gps": "S 33° 56' 16.8\", E 18° 22' 33.6\""
-    },
-    "char'd grill": {
-        "display_name": "CHAR'D GRILL",
-        "address": "Hermanus Waterfront, Market Square St",
-        "phone": "+27 (0)28 312 1986",
-        "gps": ""
-    },
-    "perlemoen restaurant": {
-        "display_name": "PERLEMOEN RESTAURANT",
-        "address": "Hermanus",
-        "phone": "",
-        "gps": ""
-    },
-    
-    # Tours/Whale Watching
-    "whale watching tour": {
-        "display_name": "WHALE WATCHING BOAT TRIP",
-        "address": "Hermanus New Harbour",
-        "phone": "",
-        "gps": ""
-    },
-    "whale watching": {
-        "display_name": "WHALE WATCHING BOAT TRIP",
-        "address": "Hermanus New Harbour, Hermanus",
-        "phone": "+27 (0)28 312 2222",
-        "gps": "S 34° 25' 12.0\", E 19° 15' 0.0\""
-    },
-    
-    # Wine Estates / Activities
-    "ernie els wines": {
-        "display_name": "ERNIE ELS WINES",
-        "address": "Annandale Road, Stellenbosch 7600",
-        "phone": "+27 (0) 21 881 3588",
-        "gps": "-34.01401835114784, 18.848032645432273"
-    },
-    "guardian peak grill": {
-        "display_name": "GUARDIAN PEAK GRILL & WINERY",
-        "address": "Annandale Road, Stellenbosch",
-        "phone": "+27 (0)21 881 3899",
-        "gps": "S 33° 56' 30.0\", E 18° 52' 18.0\""
-    },
-    
-    # More restaurants
-    "char'd grill": {
-        "display_name": "CHAR'D GRILL & WINE BAR",
-        "address": "Hermanus Waterfront, Market Square St",
-        "phone": "+27 (0)28 312 1986",
-        "gps": ""
-    },
-    "char'd grill & wine bar": {
-        "display_name": "CHAR'D GRILL & WINE BAR",
-        "address": "Hermanus Waterfront, Market Square St",
-        "phone": "+27 (0)28 312 1986",
-        "gps": ""
-    },
-}
+logger = logging.getLogger(__name__)
+
+# Cache for loaded suppliers
+_suppliers_cache: Dict[str, dict] = {}
+_last_load_time: float = 0
 
 
-def get_supplier_info(supplier_name: str) -> dict:
-    """Look up supplier information by name (case-insensitive partial match)."""
+def _get_config_path() -> Path:
+    """Get path to suppliers.yaml config file."""
+    possible_paths = [
+        Path(__file__).parent.parent / "config" / "suppliers.yaml",
+        Path("config/suppliers.yaml"),
+        Path("./config/suppliers.yaml"),
+    ]
+    
+    for path in possible_paths:
+        if path.exists():
+            return path
+    
+    return possible_paths[0]
+
+
+def _load_suppliers() -> None:
+    """Load all suppliers from YAML config file."""
+    global _suppliers_cache, _last_load_time
+    
+    config_path = _get_config_path()
+    
+    # Check if file was modified since last load
+    if config_path.exists():
+        mtime = config_path.stat().st_mtime
+        if mtime <= _last_load_time and _suppliers_cache:
+            return  # Already loaded and up-to-date
+        _last_load_time = mtime
+    
+    _suppliers_cache = {}
+    
+    if not config_path.exists():
+        logger.warning(f"Suppliers config not found: {config_path}")
+        return
+    
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        
+        if not config:
+            return
+        
+        # Load all categories into a flat dictionary
+        # Keys are normalized to uppercase for case-insensitive lookup
+        for category_name, suppliers in config.items():
+            if not isinstance(suppliers, dict):
+                continue
+            
+            for orga_name, info in suppliers.items():
+                if not isinstance(info, dict):
+                    continue
+                
+                # Normalize key to uppercase
+                key = orga_name.upper().strip()
+                
+                _suppliers_cache[key] = {
+                    "display_name": info.get("name", orga_name),
+                    "address": info.get("address", "") or "",
+                    "phone": info.get("phone", "") or "",
+                    "gps": info.get("gps", "") or "",
+                    "category": category_name
+                }
+        
+        logger.info(f"Loaded {len(_suppliers_cache)} suppliers from {config_path}")
+        
+    except Exception as e:
+        logger.error(f"Error loading suppliers: {e}")
+
+
+def get_supplier_info(supplier_name: str, category: str = None) -> dict:
+    """Look up supplier information by name (case-insensitive).
+    
+    Args:
+        supplier_name: The supplier name from ORGA
+        category: Optional category hint (not used, kept for compatibility)
+    
+    Returns:
+        dict with 'display_name', 'address', 'phone', 'gps'
+    """
     if not supplier_name:
         return {}
     
-    name_lower = supplier_name.lower().strip()
+    # Ensure suppliers are loaded
+    _load_suppliers()
+    
+    # Normalize for lookup
+    name_upper = supplier_name.upper().strip()
+    
+    # Remove (TR) suffix if present
+    import re
+    name_upper = re.sub(r'\s*\(TR\)\s*$', '', name_upper, flags=re.IGNORECASE)
+    name_upper = re.sub(r'\s+TR\s*$', '', name_upper, flags=re.IGNORECASE)
+    name_upper = name_upper.strip()
     
     # Try exact match first
-    if name_lower in SUPPLIER_INFO:
-        return SUPPLIER_INFO[name_lower]
+    if name_upper in _suppliers_cache:
+        return _suppliers_cache[name_upper].copy()
     
-    # Try partial match
-    for key, info in SUPPLIER_INFO.items():
-        if key in name_lower or name_lower in key:
-            return info
+    # Try partial match - look for key in name or name in key
+    for key, info in _suppliers_cache.items():
+        if key in name_upper or name_upper in key:
+            return info.copy()
     
-    # Return default with capitalized name
+    # Try matching first significant word
+    words = name_upper.split()
+    if words:
+        first_word = words[0]
+        for key, info in _suppliers_cache.items():
+            key_words = key.split()
+            if key_words and first_word == key_words[0]:
+                return info.copy()
+    
+    # Return default with formatted name
     return {
-        "display_name": supplier_name.upper(),
+        "display_name": supplier_name.strip().upper() if supplier_name.isupper() else supplier_name.strip().title(),
         "address": "",
         "phone": "",
         "gps": ""
     }
 
+
+def get_canonical_name(supplier_name: str, category: str = None) -> str:
+    """Get the canonical (voucher template) name for a supplier.
+    
+    Args:
+        supplier_name: The supplier name from ORGA
+        category: Optional category hint (not used)
+    
+    Returns:
+        The correct full name as it should appear on vouchers.
+    """
+    info = get_supplier_info(supplier_name, category)
+    return info.get("display_name", supplier_name)
+
+
+# Pre-load suppliers on module import
+_load_suppliers()

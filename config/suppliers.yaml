@@ -1,0 +1,1572 @@
+# =============================================================================
+# SUPPLIERS DATABASE
+# =============================================================================
+# This is the SINGLE SOURCE OF TRUTH for all supplier information.
+# Your team can edit this file directly - no coding required!
+#
+# HOW TO ADD A NEW SUPPLIER:
+# --------------------------
+# 1. Find the right category (hotels, golf, restaurants, etc.)
+# 2. Add the ORGA name (how it appears in ORGA Excel) as the key
+# 3. Fill in the details
+#
+# EXAMPLE:
+#   "GONDWANA":                          # <- ORGA name (what you see in Excel)
+#     name: "Gondwana Game Reserve"      # <- Full correct name for voucher
+#     address: "Off R328 Mossel Bay"     # <- Address (optional)
+#     phone: "+27 (0)21 555 0807"        # <- Phone (optional)
+#     gps: "S 33° 58' 48.0\", E 21° 48'" # <- GPS (optional)
+#
+# TIPS:
+# - ORGA names are case-insensitive (GONDWANA = gondwana = Gondwana)
+# - Leave address/phone/gps empty ("") if unknown - voucher still works
+# - Multiple ORGA names can point to same supplier (for typos/variations)
+# =============================================================================
+
+# =============================================================================
+# HOTELS - SAFARI LODGES
+# =============================================================================
+hotels_safari:
+  "GONDWANA":
+    name: "Gondwana Game Reserve"
+    address: "Off R328 Mossel Bay, Western Cape"
+    phone: "+27 (0)21 555 0807"
+    gps: "S 33° 58' 48.0\", E 21° 48' 0.0\""
+
+  "GONDWANA GAME":
+    name: "Gondwana Game Reserve"
+    address: "Off R328 Mossel Bay, Western Cape"
+    phone: "+27 (0)21 555 0807"
+    gps: "S 33° 58' 48.0\", E 21° 48' 0.0\""
+
+  "UMLANI":
+    name: "Umlani Bush Camp"
+    address: "Timbavati Game Reserve, Hoedspruit"
+    phone: "+27 (0)21 785 5547"
+    gps: "S 24° 19' 54.588\", E 31° 18' 29.808\""
+
+  "UKUTHULA":
+    name: "Ukuthula Bush Lodge"
+    address: "Hoedspruit, Limpopo"
+    phone: "+27 (0)15 793 0267"
+    gps: "S 24° 21' 36.0\", E 30° 58' 12.0\""
+
+  "UKUTHULA BUSH":
+    name: "Ukuthula Bush Lodge"
+    address: "Hoedspruit, Limpopo"
+    phone: "+27 (0)15 793 0267"
+    gps: "S 24° 21' 36.0\", E 30° 58' 12.0\""
+
+  "THORNYBUSH":
+    name: "Thornybush Game Lodge"
+    address: "Thornybush Nature Reserve, Hoedspruit"
+    phone: "+27 (0)11 253 6500"
+    gps: "S 24° 25' 12.0\", E 31° 6' 36.0\""
+
+  "THORNYBUSH GAME":
+    name: "Thornybush Game Lodge"
+    address: "Thornybush Nature Reserve, Hoedspruit"
+    phone: "+27 (0)11 253 6500"
+    gps: "S 24° 25' 12.0\", E 31° 6' 36.0\""
+
+  "THORNY BUSH":
+    name: "Thornybush Game Lodge"
+    address: "Thornybush Nature Reserve, Hoedspruit"
+    phone: "+27 (0)11 253 6500"
+    gps: "S 24° 25' 12.0\", E 31° 6' 36.0\""
+
+  "MOTSWARI":
+    name: "Motswari Private Game Reserve"
+    address: "Timbavati Private Nature Reserve, Hoedspruit"
+    phone: "+27 (0)15 793 8700"
+    gps: "S 24° 22' 48.0\", E 31° 16' 48.0\""
+
+  "KARIEGA":
+    name: "Kariega Game Reserve"
+    address: "Grahamstown Road, Kenton-on-Sea, Eastern Cape"
+    phone: "+27 (0)46 636 7904"
+    gps: "S 33° 35' 24.0\", E 26° 34' 12.0\""
+
+  "KARIEGA RIVER":
+    name: "Kariega Game Reserve"
+    address: "Grahamstown Road, Kenton-on-Sea, Eastern Cape"
+    phone: "+27 (0)46 636 7904"
+    gps: "S 33° 35' 24.0\", E 26° 34' 12.0\""
+
+  "KARIEGA RIVER LODGE":
+    name: "Kariega River Lodge"
+    address: "Grahamstown Road, Kenton-on-Sea, Eastern Cape"
+    phone: "+27 (0)46 636 7904"
+    gps: "S 33° 35' 24.0\", E 26° 34' 12.0\""
+
+  "LALIBELA":
+    name: "Lalibela Wildlife Reserve"
+    address: "N2 Between Grahamstown & Port Elizabeth"
+    phone: "+27 (0)41 581 8170"
+    gps: "S 33° 30' 0.0\", E 26° 12' 0.0\""
+
+  "SHAMWARI":
+    name: "Sindile Lodge, Shamwari Game Reserve"
+    address: "N2, Paterson, Eastern Cape"
+    phone: "+27 (0)42 203 1111"
+    gps: "S 33° 26' 24.0\", E 26° 4' 48.0\""
+
+  "NYATI":
+    name: "Nyati Safari Lodge"
+    address: "Thornybush Game Reserve, Hoedspruit"
+    phone: "+27 (0)15 793 0150"
+    gps: "S 24° 23' 24.0\", E 31° 3' 0.0\""
+
+  "NYATI RIVER":
+    name: "Nyati Safari Lodge"
+    address: "Thornybush Game Reserve, Hoedspruit"
+    phone: "+27 (0)15 793 0150"
+    gps: "S 24° 23' 24.0\", E 31° 3' 0.0\""
+
+  "NYATI RIVER LODGE":
+    name: "Nyati Safari Lodge"
+    address: "Thornybush Game Reserve, Hoedspruit"
+    phone: "+27 (0)15 793 0150"
+    gps: "S 24° 23' 24.0\", E 31° 3' 0.0\""
+
+  "KAPAMA":
+    name: "Kapama Buffalo Camp"
+    address: "Kapama Private Game Reserve, Hoedspruit"
+    phone: "+27 (0)12 368 0600"
+    gps: "S 24° 23' 0.0\", E 31° 2' 0.0\""
+
+  "BUHALA":
+    name: "Buhala Lodge"
+    address: "Makalali Private Game Reserve"
+    phone: "+27 (0)15 793 1729"
+    gps: ""
+
+  "THABAMATI":
+    name: "Thabamati Luxury Tented Camp"
+    address: "Timbavati Private Nature Reserve"
+    phone: "+27 (0)15 793 0150"
+    gps: ""
+
+  "NDHULA":
+    name: "Ndhula Luxury Tented Camp"
+    address: "Klaserie Private Nature Reserve"
+    phone: "+27 (0)15 793 0150"
+    gps: ""
+
+  "SASEKA":
+    name: "Saseka Tented Camp"
+    address: "Thornybush Game Reserve"
+    phone: "+27 (0)15 793 0150"
+    gps: ""
+
+  "MILIMA":
+    name: "MILIMA Big 5 Safari Lodge"
+    address: "Balule Nature Reserve, Hoedspruit"
+    phone: "+27 (0)15 793 1436"
+    gps: ""
+
+  "HOYO HOYO":
+    name: "Hoyo Hoyo Safari Lodge"
+    address: "Kruger National Park"
+    phone: "+27 (0)13 735 5367"
+    gps: ""
+
+  "GEIGERS":
+    name: "Geigers Camp"
+    address: "Timbavati Game Reserve"
+    phone: ""
+    gps: ""
+
+  "DULINI":
+    name: "Dulini River Lodge"
+    address: "Sabi Sand Game Reserve"
+    phone: "+27 (0)11 792 5066"
+    gps: ""
+
+# =============================================================================
+# HOTELS - CAPE TOWN & CAMPS BAY
+# =============================================================================
+hotels_cape_town:
+  "HOME SUITE":
+    name: "Home Suite Station House"
+    address: "19 Kloof Rd, Cape Town, 8001"
+    phone: "+27 (0)82 362 2603"
+    gps: "S 33° 55' 9.119\", E 18° 23' 13.740\""
+
+  "HOME SUITE STATION":
+    name: "Home Suite Station House"
+    address: "19 Kloof Rd, Cape Town, 8001"
+    phone: "+27 (0)82 362 2603"
+    gps: "S 33° 55' 9.119\", E 18° 23' 13.740\""
+
+  "HOME SUITE STATION HOUSE":
+    name: "Home Suite Station House"
+    address: "19 Kloof Rd, Cape Town, 8001"
+    phone: "+27 (0)82 362 2603"
+    gps: "S 33° 55' 9.119\", E 18° 23' 13.740\""
+
+  "OCEAN VIEW":
+    name: "Ocean View House"
+    address: "14 Victoria Road, Camps Bay, Cape Town, 8005"
+    phone: "+27 (0)21 438 1982"
+    gps: "S 33° 57' 16.8\", E 18° 22' 44.4\""
+
+  "OCEAN VIEW GH":
+    name: "Ocean View House"
+    address: "14 Victoria Road, Camps Bay, Cape Town, 8005"
+    phone: "+27 (0)21 438 1982"
+    gps: "S 33° 57' 16.8\", E 18° 22' 44.4\""
+
+  "OCEAN VIEW HOUSE":
+    name: "Ocean View House"
+    address: "14 Victoria Road, Camps Bay, Cape Town, 8005"
+    phone: "+27 (0)21 438 1982"
+    gps: "S 33° 57' 16.8\", E 18° 22' 44.4\""
+
+  "CAMPS BAY RETREAT":
+    name: "Camps Bay Retreat"
+    address: "7 Chilworth Road, Camps Bay, Cape Town"
+    phone: "+27 (0)21 437 8300"
+    gps: "S 33° 57' 7.2\", E 18° 22' 26.4\""
+
+  "O TWO":
+    name: "O Two Boutique Hotel"
+    address: "13 Victoria Road, Camps Bay, Cape Town"
+    phone: "+27 (0)21 001 8200"
+    gps: "S 33° 57' 10.8\", E 18° 22' 48.0\""
+
+  "POD":
+    name: "POD Camps Bay"
+    address: "3 Argyle Street, Camps Bay, Cape Town"
+    phone: "+27 (0)21 438 8888"
+    gps: "S 33° 57' 9.6\", E 18° 22' 40.8\""
+
+  "POD CAMPS BAY":
+    name: "POD Camps Bay"
+    address: "3 Argyle Street, Camps Bay, Cape Town"
+    phone: "+27 (0)21 438 8888"
+    gps: "S 33° 57' 9.6\", E 18° 22' 40.8\""
+
+  "CAPE MILNER":
+    name: "The Cape Milner Hotel"
+    address: "2A Milner Road, Tamboerskloof, Cape Town"
+    phone: "+27 (0)21 426 1101"
+    gps: "S 33° 55' 33.6\", E 18° 24' 36.0\""
+
+  "CAPE RIVIERA":
+    name: "Cape Riviera Guest House"
+    address: "1 Portswood Road, Green Point, Cape Town"
+    phone: "+27 (0)21 439 4488"
+    gps: "S 33° 54' 18.0\", E 18° 24' 0.0\""
+
+# =============================================================================
+# HOTELS - WINELANDS (Stellenbosch, Franschhoek, Paarl)
+# =============================================================================
+hotels_winelands:
+  "WEDGEVIEW":
+    name: "Wedgeview Country House & Spa"
+    address: "Bonniemile, Stellenbosch, 7604"
+    phone: "+27 (0)21 881 3525"
+    gps: "S 33° 58' 5.464\", E 18° 51' 37.828\""
+
+  "WEDGEVVIEW":
+    name: "Wedgeview Country House & Spa"
+    address: "Bonniemile, Stellenbosch, 7604"
+    phone: "+27 (0)21 881 3525"
+    gps: "S 33° 58' 5.464\", E 18° 51' 37.828\""
+
+  "STEENBERG":
+    name: "Steenberg Hotel & Spa"
+    address: "10802 Steenberg Estate, Tokai Road, Constantia, 7945"
+    phone: "+27 (0)21 713 2222"
+    gps: "S 34° 4' 30.0\", E 18° 25' 48.0\""
+
+  "DE ZALZE":
+    name: "De Zalze Lodge"
+    address: "Strand Road (R44), Stellenbosch, 7600"
+    phone: "+27 (0)21 880 0740"
+    gps: "S 33° 59' 24.0\", E 18° 50' 24.0\""
+
+  "LE FRANSCHHOEK":
+    name: "Le Franschhoek Hotel & Spa"
+    address: "16 Minor Road, Franschhoek, 7690"
+    phone: "+27 (0)21 876 8900"
+    gps: "S 33° 54' 36.0\", E 19° 6' 36.0\""
+
+  "MAJEKA":
+    name: "Majeka House"
+    address: "26-32 Houtkapper Street, Paradyskloof, Stellenbosch"
+    phone: "+27 (0)21 880 1549"
+    gps: "S 33° 57' 36.0\", E 18° 51' 0.0\""
+
+  "FAIRLAWNS":
+    name: "Fairlawns Boutique Hotel & Spa"
+    address: "Alma Road, Morningside, Johannesburg"
+    phone: "+27 (0)11 804 2540"
+    gps: ""
+
+  "LANZERAC":
+    name: "Lanzerac Hotel & Spa"
+    address: "1 Lanzerac Road, Stellenbosch, 7600"
+    phone: "+27 (0)21 887 1132"
+    gps: "S 33° 55' 48.0\", E 18° 53' 24.0\""
+
+  "OUDE WERF":
+    name: "Oude Werf Hotel"
+    address: "30 Church Street, Stellenbosch, 7600"
+    phone: "+27 (0)21 887 4608"
+    gps: "S 33° 56' 9.6\", E 18° 51' 43.2\""
+
+  "OUDEWERF":
+    name: "Oude Werf Hotel"
+    address: "30 Church Street, Stellenbosch, 7600"
+    phone: "+27 (0)21 887 4608"
+    gps: "S 33° 56' 9.6\", E 18° 51' 43.2\""
+
+  "EENDRACHT":
+    name: "Eendracht Hotel"
+    address: "161 Dorp Street, Stellenbosch, 7600"
+    phone: "+27 (0)21 883 8843"
+    gps: "S 33° 56' 24.0\", E 18° 51' 36.0\""
+
+  "ROOSENWIJN":
+    name: "Roosenwijn Guest House"
+    address: "Dorp Street, Stellenbosch, 7600"
+    phone: "+27 (0)21 883 2637"
+    gps: "S 33° 56' 12.0\", E 18° 51' 48.0\""
+
+  "ROSENHOF":
+    name: "Rosenhof Country House"
+    address: "Huguenot Road, Franschhoek, 7690"
+    phone: "+27 (0)21 876 2670"
+    gps: "S 33° 54' 0.0\", E 19° 5' 24.0\""
+
+  "ROZENHOF":
+    name: "Rosenhof Country House"
+    address: "Huguenot Road, Franschhoek, 7690"
+    phone: "+27 (0)21 876 2670"
+    gps: "S 33° 54' 0.0\", E 19° 5' 24.0\""
+
+  "SCHOONE OORDT":
+    name: "Schoone Oordt Country House"
+    address: "Swellendam"
+    phone: "+27 (0)28 514 1261"
+    gps: ""
+
+  "CHRISTIANA":
+    name: "Christiana Lodge"
+    address: "Swellendam"
+    phone: ""
+    gps: ""
+
+  "GRAND ROCHE":
+    name: "Grand Roche Hotel"
+    address: "Plantasie Street, Paarl, 7646"
+    phone: "+27 (0)21 863 5100"
+    gps: ""
+
+# =============================================================================
+# HOTELS - HERMANUS & OVERBERG
+# =============================================================================
+hotels_hermanus:
+  "WHALE ROCK":
+    name: "Whale Rock Luxury Lodge"
+    address: "37 Springfield Avenue, Westcliff, Hermanus"
+    phone: "+27 (0)28 313 0014"
+    gps: "S 34° 24' 50.4\", E 19° 15' 21.6\""
+
+  "WHALE ROCK LODGE":
+    name: "Whale Rock Luxury Lodge"
+    address: "37 Springfield Avenue, Westcliff, Hermanus"
+    phone: "+27 (0)28 313 0014"
+    gps: "S 34° 24' 50.4\", E 19° 15' 21.6\""
+
+  "HERMANUS BOUTIQUE":
+    name: "Hermanus Boutique Hotel"
+    address: "26 Marine Drive, Hermanus, 7200"
+    phone: "+27 (0)28 312 2828"
+    gps: "S 34° 25' 4.8\", E 19° 14' 24.0\""
+
+  "ESPLANADE":
+    name: "The Esplanade Hermanus"
+    address: "Marine Drive, Hermanus, 7200"
+    phone: "+27 (0)28 312 3610"
+    gps: "S 34° 25' 1.2\", E 19° 14' 38.4\""
+
+  "ESPLANADE HERMANUS":
+    name: "The Esplanade Hermanus"
+    address: "Marine Drive, Hermanus, 7200"
+    phone: "+27 (0)28 312 3610"
+    gps: "S 34° 25' 1.2\", E 19° 14' 38.4\""
+
+  "ABALONE":
+    name: "Abalone Guest Lodge"
+    address: "Hermanus"
+    phone: ""
+    gps: ""
+
+  "ROBERTSON SMALL":
+    name: "The Robertson Small Boutique Hotel"
+    address: "58 Van Reenen Street, Robertson, 6705"
+    phone: "+27 (0)23 626 7200"
+    gps: "S 33° 48' 0.0\", E 19° 53' 24.0\""
+
+# =============================================================================
+# HOTELS - GARDEN ROUTE
+# =============================================================================
+hotels_garden_route:
+  "MGM":
+    name: "MGM Wilderness"
+    address: "29 Roland Krynauw St, Wilderness, 6560"
+    phone: "+27 (0)83 292 0753"
+    gps: "S 33.9959°, E 22.5875°"
+
+  "MGM WILDERNESS":
+    name: "MGM Wilderness"
+    address: "29 Roland Krynauw St, Wilderness, 6560"
+    phone: "+27 (0)83 292 0753"
+    gps: "S 33.9959°, E 22.5875°"
+
+  "PEZULA":
+    name: "Pezula Nature Hotel & Spa"
+    address: "Pezula Private Estate, Knysna, 6570"
+    phone: "+27 (0)44 302 3333"
+    gps: "S 34° 3' 36.0\", E 23° 3' 0.0\""
+
+  "PLETTENBERG":
+    name: "The Plettenberg"
+    address: "40 Church Street, Plettenberg Bay, 6600"
+    phone: "+27 (0)44 533 2030"
+    gps: "S 34° 3' 18.0\", E 23° 22' 12.0\""
+
+  "FANCOURT":
+    name: "Fancourt Hotel"
+    address: "Montagu Street, Blanco, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "FANCOURT MANOR":
+    name: "Fancourt Manor House"
+    address: "Montagu Street, Blanco, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "SIMOLA":
+    name: "Simola Hotel, Country Club & Spa"
+    address: "1 Old Cape Road, Knysna, 6571"
+    phone: "+27 (0)44 302 9600"
+    gps: "S 34° 2' 24.0\", E 23° 3' 36.0\""
+
+  "TURBINE":
+    name: "The Turbine Hotel"
+    address: "Sawtooth Lane, Thesen Island, Knysna, 6571"
+    phone: "+27 (0)44 302 5746"
+    gps: "S 34° 2' 31.2\", E 23° 2' 52.8\""
+
+  "LOFTS":
+    name: "The Lofts Boutique Hotel"
+    address: "Thesen Island, Knysna, 6571"
+    phone: "+27 (0)44 302 5710"
+    gps: "S 34° 2' 27.6\", E 23° 2' 56.4\""
+
+  "BAMBOO":
+    name: "The Bamboo Lodge in Knysna"
+    address: "Knysna"
+    phone: ""
+    gps: ""
+
+  "FERNERY":
+    name: "The Fernery"
+    address: "Tsitsikamma"
+    phone: ""
+    gps: ""
+
+  "CROWN ON THE HEADS":
+    name: "Crown on the Heads"
+    address: "George Rex Drive, The Heads, Knysna, 6571"
+    phone: "+27 (0)44 382 7002"
+    gps: "S 34° 4' 4.8\", E 23° 4' 48.0\""
+
+  "AHA THE REX":
+    name: "Aha The Rex Hotel"
+    address: "10 Gray Street, Knysna, 6571"
+    phone: "+27 (0)44 302 9900"
+    gps: "S 34° 2' 9.6\", E 23° 2' 31.2\""
+
+  "CANAL GH":
+    name: "Canal Guesthouse St Francis Bay"
+    address: "St Francis Bay"
+    phone: ""
+    gps: ""
+
+  "HACKLEWOOD":
+    name: "Hacklewood Hill Country House, Gqeberha"
+    address: "Gqeberha (Port Elizabeth)"
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# HOTELS - EU (Europe)
+# =============================================================================
+hotels_eu:
+  "ROBINSON AGADIR":
+    name: "Robinson Agadir"
+    address: "Agadir, Morocco"
+    phone: ""
+    gps: ""
+
+  "QUINTA DA RIA":
+    name: "Quinta Da Ria"
+    address: "Algarve, Portugal"
+    phone: ""
+    gps: ""
+
+  "ROBINSON QUINTA":
+    name: "Quinta Da Ria"
+    address: "Algarve, Portugal"
+    phone: ""
+    gps: ""
+
+  "VILAMOURA":
+    name: "Hilton Vilamoura As Cascatas Golf Resort & Spa"
+    address: "Vilamoura, Algarve, Portugal"
+    phone: ""
+    gps: ""
+
+  "HILTON VILAMOURA":
+    name: "Hilton Vilamoura As Cascatas Golf Resort & Spa"
+    address: "Vilamoura, Algarve, Portugal"
+    phone: ""
+    gps: ""
+
+  "PALMARES":
+    name: "Palmares Beach House Hotel"
+    address: "Lagos, Algarve, Portugal"
+    phone: ""
+    gps: ""
+
+  "PRAIA D'EL REY":
+    name: "Praia D'El Rey Marriot Golf & Beach Resort"
+    address: "Obidos, Portugal"
+    phone: ""
+    gps: ""
+
+  "LOPESAN":
+    name: "Lopesan Villa del Conde Resort & Thalasso"
+    address: "Gran Canaria, Spain"
+    phone: ""
+    gps: ""
+
+  "LOSPESAN":
+    name: "Lopesan Villa del Conde Resort & Thalasso"
+    address: "Gran Canaria, Spain"
+    phone: ""
+    gps: ""
+
+  "ELBA PALACE":
+    name: "Elba Palace"
+    address: "Fuerteventura, Spain"
+    phone: ""
+    gps: ""
+
+  "ELBA SUNSET":
+    name: "Elba Sunset"
+    address: "Fuerteventura, Spain"
+    phone: ""
+    gps: ""
+
+  "GLORIA VERDE":
+    name: "Gloria Verde"
+    address: "Gran Canaria, Spain"
+    phone: ""
+    gps: ""
+
+  "GLORIA SERENITY":
+    name: "Gloria Serenity"
+    address: "Gran Canaria, Spain"
+    phone: ""
+    gps: ""
+
+  "VERDURA":
+    name: "Verdura Resort Sicily, a Rocco Forte Hotel"
+    address: "Sicily, Italy"
+    phone: ""
+    gps: ""
+
+  "APHRODITE":
+    name: "Aphrodite Hills"
+    address: "Paphos, Cyprus"
+    phone: ""
+    gps: ""
+
+  "APHRODITE HILLS":
+    name: "Aphrodite Hills"
+    address: "Paphos, Cyprus"
+    phone: ""
+    gps: ""
+
+  "WESTIN COSTA":
+    name: "The Westin Resort Costa Navarino"
+    address: "Messinia, Greece"
+    phone: ""
+    gps: ""
+
+  "ROMANOS":
+    name: "The Romanos A Luxury Collection Resort Costa Navarino"
+    address: "Messinia, Greece"
+    phone: ""
+    gps: ""
+
+  "PRECISE EL ROMPIDO":
+    name: "Precise El Rompido"
+    address: "Huelva, Spain"
+    phone: ""
+    gps: ""
+
+  "SUENO":
+    name: "Sueno Deluxe Hotel Belek"
+    address: "Belek, Turkey"
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# GOLF COURSES
+# =============================================================================
+golf:
+  "STEENBERG GC":
+    name: "Steenberg Golf Club"
+    address: "Steenberg Estate, Tokai Road, Constantia, 7945"
+    phone: "+27 (0)21 713 2233"
+    gps: "S 34° 4' 26.4\", E 18° 25' 51.6\""
+
+  "STEENBERG GOLF":
+    name: "Steenberg Golf Club"
+    address: "Steenberg Estate, Tokai Road, Constantia, 7945"
+    phone: "+27 (0)21 713 2233"
+    gps: "S 34° 4' 26.4\", E 18° 25' 51.6\""
+
+  "DE ZALZE GC":
+    name: "De Zalze Golf Club"
+    address: "Strand Road, Stellenbosch, 7600"
+    phone: "+27 (0)21 880 7300"
+    gps: "S 33° 59' 27.6\", E 18° 50' 20.4\""
+
+  "PEARL VALLEY":
+    name: "Pearl Valley Golf Estate"
+    address: "Val de Vie Estate, Paarl, 7646"
+    phone: "+27 (0)21 867 8000"
+    gps: "S 33° 50' 24.0\", E 18° 57' 36.0\""
+
+  "ERINVALE":
+    name: "Erinvale Golf Club"
+    address: "Lourensford Road, Somerset West, 7130"
+    phone: "+27 (0)21 847 1906"
+    gps: "S 34° 4' 48.0\", E 18° 53' 24.0\""
+
+  "ERINVALE GC":
+    name: "Erinvale Golf Club"
+    address: "Lourensford Road, Somerset West, 7130"
+    phone: "+27 (0)21 847 1906"
+    gps: "S 34° 4' 48.0\", E 18° 53' 24.0\""
+
+  "CLOVELLY":
+    name: "Clovelly Country Club"
+    address: "70 Doordrift Avenue, Clovelly, 7975"
+    phone: "+27 (0)21 782 1118"
+    gps: "S 34° 6' 36.0\", E 18° 26' 24.0\""
+
+  "ROYAL CAPE":
+    name: "Royal Cape Golf Club"
+    address: "174 Ottery Road, Wynberg, Cape Town, 7800"
+    phone: "+27 (0)21 761 6551"
+    gps: "S 34° 1' 12.0\", E 18° 28' 12.0\""
+
+  "PINNACLE POINT":
+    name: "Pinnacle Point Golf Club"
+    address: "Pinnacle Point Beach & Golf Resort, Mossel Bay"
+    phone: "+27 (0)44 606 5000"
+    gps: "S 34° 7' 48.0\", E 22° 4' 48.0\""
+
+  "PEZULA GC":
+    name: "Pezula Golf Club"
+    address: "Pezula Private Estate, Knysna, 6570"
+    phone: "+27 (0)44 302 3332"
+    gps: "S 34° 3' 28.8\", E 23° 3' 7.2\""
+
+  "SIMOLA GC":
+    name: "Simola Golf Estate"
+    address: "Old Cape Road, Knysna, 6571"
+    phone: "+27 (0)44 302 9600"
+    gps: "S 34° 2' 16.8\", E 23° 3' 28.8\""
+
+  "PLETTENBERG BAY":
+    name: "Plettenberg Bay Country Club"
+    address: "Piesang Valley Road, Plettenberg Bay, 6600"
+    phone: "+27 (0)44 533 2132"
+    gps: "S 34° 3' 7.2\", E 23° 23' 24.0\""
+
+  "FANCOURT LINKS":
+    name: "Fancourt - The Links"
+    address: "Montagu Street, Blanco, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "FANCOURT MONTAGU":
+    name: "Fancourt - Montagu Course"
+    address: "Montagu Street, Blanco, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "FANCOURT OUTENIQUA":
+    name: "Fancourt - Outeniqua Course"
+    address: "Montagu Street, Blanco, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "LEOPARD CREEK":
+    name: "Leopard Creek Country Club"
+    address: "Malelane, Mpumalanga"
+    phone: "+27 (0)13 791 2000"
+    gps: ""
+
+  "ARABELLA GC":
+    name: "Arabella Golf Course"
+    address: "Kleinmond, Western Cape"
+    phone: "+27 (0)28 284 0105"
+    gps: ""
+
+  "SILVERSTRAND":
+    name: "Silverstrand Golf Course"
+    address: "Robertson, Western Cape"
+    phone: ""
+    gps: ""
+
+  # EU Golf
+  "BLACKSEARAMA":
+    name: "BlackSeaRama Golf & Villas"
+    address: "Bulgaria"
+    phone: ""
+    gps: ""
+
+  "HIMMERLAND":
+    name: "Himmerland Golf Resort"
+    address: "Denmark"
+    phone: ""
+    gps: ""
+
+  "VILAMOURA GOLF":
+    name: "Vilamoura Golf Courses"
+    address: "Vilamoura, Algarve, Portugal"
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# RENTAL CLUBS
+# =============================================================================
+rental_clubs:
+  "CLUBS TO HIRE":
+    name: "Clubs To Hire"
+    address: ""
+    phone: ""
+    gps: ""
+
+  "GOLF CLUB RENTALS":
+    name: "Golf Club Rentals SA"
+    address: ""
+    phone: ""
+    gps: ""
+
+  "BLUE SKY":
+    name: "Blue Sky Golf Rentals"
+    address: ""
+    phone: ""
+    gps: ""
+
+  "EASY CLUBS":
+    name: "Easy Clubs Hire"
+    address: ""
+    phone: ""
+    gps: ""
+
+  "MY CADDY":
+    name: "My Caddy Master"
+    address: ""
+    phone: ""
+    gps: ""
+
+  "18 STORE":
+    name: "18 Store"
+    address: ""
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# ACTIVITIES - WINE TASTINGS
+# =============================================================================
+activities_wine:
+  "ERNIE ELS":
+    name: "Ernie Els Wines - Wine Tasting"
+    address: "Annandale Road, Stellenbosch, 7600"
+    phone: "+27 (0)21 881 3588"
+    gps: "S 34° 0' 50.4\", E 18° 50' 52.8\""
+
+  "ERINE ELS":
+    name: "Ernie Els Wines - Wine Tasting"
+    address: "Annandale Road, Stellenbosch, 7600"
+    phone: "+27 (0)21 881 3588"
+    gps: "S 34° 0' 50.4\", E 18° 50' 52.8\""
+
+  "ERNIE ELS WINES":
+    name: "Ernie Els Wines - Wine Tasting"
+    address: "Annandale Road, Stellenbosch, 7600"
+    phone: "+27 (0)21 881 3588"
+    gps: "S 34° 0' 50.4\", E 18° 50' 52.8\""
+
+  "GUARDIAN PEAK":
+    name: "Guardian Peak Grill & Winery"
+    address: "Annandale Road, Stellenbosch, 7600"
+    phone: "+27 (0)21 881 3899"
+    gps: "S 34° 0' 43.2\", E 18° 50' 45.6\""
+
+  "TOKARA":
+    name: "Tokara Wine Estate"
+    address: "Helshoogte Pass, Stellenbosch, 7600"
+    phone: "+27 (0)21 808 5900"
+    gps: "S 33° 54' 36.0\", E 18° 55' 12.0\""
+
+  "HAUTE CABRIERE":
+    name: "Haute Cabrière"
+    address: "Franschhoek Pass Road, Franschhoek, 7690"
+    phone: "+27 (0)21 876 3688"
+    gps: "S 33° 53' 24.0\", E 19° 6' 0.0\""
+
+  "BOSCHENDAL":
+    name: "Boschendal Wine Farm"
+    address: "Pniel Road, Franschhoek, 7690"
+    phone: "+27 (0)21 870 4200"
+    gps: "S 33° 52' 12.0\", E 18° 58' 48.0\""
+
+  "BOSCHENDAL C&W":
+    name: "Boschendal Choc & Wine Tasting"
+    address: "Pniel Road, Franschhoek, 7690"
+    phone: "+27 (0)21 870 4200"
+    gps: "S 33° 52' 12.0\", E 18° 58' 48.0\""
+
+  "BOSCHENDAL CHOC":
+    name: "Boschendal Choc & Wine Tasting"
+    address: "Pniel Road, Franschhoek, 7690"
+    phone: "+27 (0)21 870 4200"
+    gps: "S 33° 52' 12.0\", E 18° 58' 48.0\""
+
+  "PETER FALKE":
+    name: "Peter Falke Wine Tasting"
+    address: "Stellenbosch"
+    phone: ""
+    gps: ""
+
+  "OLDENBURG":
+    name: "Oldenburg Vineyard"
+    address: "Banghoek Valley, Stellenbosch"
+    phone: ""
+    gps: ""
+
+  "LA VIERGE":
+    name: "La Vierge"
+    address: "Hemel-en-Aarde Valley, Hermanus"
+    phone: ""
+    gps: ""
+
+  "VERGELEGEN":
+    name: "Vergelegen"
+    address: "Somerset West"
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# ACTIVITIES - TOURS
+# =============================================================================
+activities_tours:
+  "TABLE MOUNTAIN":
+    name: "Table Mountain Aerial Cableway"
+    address: "Tafelberg Road, Gardens, Cape Town, 8001"
+    phone: "+27 (0)21 424 8181"
+    gps: "S 33° 56' 54.0\", E 18° 24' 10.8\""
+
+  "TABLE MOUNTAIN TICKETS":
+    name: "Table Mountain Aerial Cableway"
+    address: "Tafelberg Road, Gardens, Cape Town, 8001"
+    phone: "+27 (0)21 424 8181"
+    gps: "S 33° 56' 54.0\", E 18° 24' 10.8\""
+
+  "TM TICKETS":
+    name: "Table Mountain Aerial Cableway"
+    address: "Tafelberg Road, Gardens, Cape Town, 8001"
+    phone: "+27 (0)21 424 8181"
+    gps: "S 33° 56' 54.0\", E 18° 24' 10.8\""
+
+  "ROBBEN ISLAND":
+    name: "Robben Island Museum"
+    address: "V&A Waterfront, Cape Town"
+    phone: "+27 (0)21 413 4220"
+    gps: "S 33° 54' 0.0\", E 18° 22' 12.0\""
+
+  "CAPE PENINSULA":
+    name: "Cape Peninsula Tour"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "FD CAPE PEN":
+    name: "Cape Peninsula Tour"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "FD CAPE PENINSULA":
+    name: "Cape Peninsula Tour"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "FD WINELANDS":
+    name: "Cape Winelands Tour"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "WINELANDS TOUR":
+    name: "Cape Winelands Tour"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "PANORAMA":
+    name: "Panorama Tour"
+    address: "Mpumalanga"
+    phone: ""
+    gps: ""
+
+  "PANORAMA ROUTE":
+    name: "Panorama Tour"
+    address: "Mpumalanga"
+    phone: ""
+    gps: ""
+
+  "FH WINE REGION":
+    name: "FH Wine Region Tour"
+    address: ""
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# ACTIVITIES - WILDLIFE & NATURE
+# =============================================================================
+activities_wildlife:
+  "CANGO CAVES":
+    name: "Cango Caves"
+    address: "R328 Cango Caves Road, Oudtshoorn"
+    phone: "+27 (0)44 272 7410"
+    gps: "S 33° 23' 24.0\", E 22° 12' 36.0\""
+
+  "CANGO":
+    name: "Cango Caves"
+    address: "R328 Cango Caves Road, Oudtshoorn"
+    phone: "+27 (0)44 272 7410"
+    gps: "S 33° 23' 24.0\", E 22° 12' 36.0\""
+
+  "KNYSNA ELEPHANT":
+    name: "Knysna Elephant Park"
+    address: "N2, Plettenberg Bay, 6600"
+    phone: "+27 (0)44 532 7732"
+    gps: "S 33° 56' 24.0\", E 23° 15' 0.0\""
+
+  "ELEPHANT WHISPERS":
+    name: "Elephant Whispers"
+    address: "R40, Hazyview, 1242"
+    phone: "+27 (0)13 737 6609"
+    gps: "S 25° 1' 48.0\", E 31° 4' 12.0\""
+
+  "ELEPHANT SANCTUARY":
+    name: "Elephant Whispers"
+    address: "R40, Hazyview, 1242"
+    phone: "+27 (0)13 737 6609"
+    gps: "S 25° 1' 48.0\", E 31° 4' 12.0\""
+
+  "MOHOLOLO":
+    name: "Moholoholo Wildlife Rehabilitation Centre"
+    address: "R527, Hoedspruit, Limpopo"
+    phone: "+27 (0)15 795 5236"
+    gps: "S 24° 29' 24.0\", E 30° 52' 12.0\""
+
+  "MOHOLOHOLO":
+    name: "Moholoholo Wildlife Rehabilitation Centre"
+    address: "R527, Hoedspruit, Limpopo"
+    phone: "+27 (0)15 795 5236"
+    gps: "S 24° 29' 24.0\", E 30° 52' 12.0\""
+
+  "HOEDSPRUIT ENDANGERED":
+    name: "Hoedspruit Endangered Species"
+    address: "Hoedspruit"
+    phone: ""
+    gps: ""
+
+  "MEERKAT":
+    name: "Meerkat Adventure"
+    address: "Oudtshoorn"
+    phone: ""
+    gps: ""
+
+  "FIVE SHY":
+    name: "Five Shy Meerkats - Adventure tour"
+    address: "Oudtshoorn"
+    phone: ""
+    gps: ""
+
+  "OSTRICH FARM":
+    name: "Highgate Ostrich Show Farm"
+    address: "Oudtshoorn"
+    phone: ""
+    gps: ""
+
+  "HIGHGATE":
+    name: "Highgate Ostrich Show Farm"
+    address: "Oudtshoorn"
+    phone: ""
+    gps: ""
+
+  "ADDO":
+    name: "Addo Elephant National Park"
+    address: "Addo, Eastern Cape"
+    phone: ""
+    gps: ""
+
+  "ADDO ELEPHANT":
+    name: "Addo Elephant National Park"
+    address: "Addo, Eastern Cape"
+    phone: ""
+    gps: ""
+
+  "TSITSIKAMMA":
+    name: "Tsitsikamma National Park"
+    address: "Tsitsikamma, Garden Route"
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# ACTIVITIES - BOAT TOURS
+# =============================================================================
+activities_boat:
+  "OCEAN ODYSSEY":
+    name: "Ocean Odyssey"
+    address: "Knysna Waterfront, Knysna, 6571"
+    phone: "+27 (0)44 382 0321"
+    gps: "S 34° 2' 24.0\", E 23° 2' 48.0\""
+
+  "WHALE WATCHING":
+    name: "Springtide Charters"
+    address: "New Harbour, Hermanus, 7200"
+    phone: "+27 (0)82 777 3676"
+    gps: "S 34° 25' 12.0\", E 19° 15' 0.0\""
+
+  "SPRINGTIDE":
+    name: "Springtide Charters"
+    address: "New Harbour, Hermanus, 7200"
+    phone: "+27 (0)82 777 3676"
+    gps: "S 34° 25' 12.0\", E 19° 15' 0.0\""
+
+  "FEATHERBED":
+    name: "Featherbed Nature Reserve"
+    address: "Waterfront Drive, Knysna, 6571"
+    phone: "+27 (0)44 382 1693"
+    gps: "S 34° 4' 12.0\", E 23° 3' 36.0\""
+
+  "SUNSET BOAT":
+    name: "Sunset Boat Cruise"
+    address: "Knysna"
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# ACTIVITIES - OTHER
+# =============================================================================
+activities_other:
+  "NAC HELICOPTER":
+    name: "NAC Helicopter Ride"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "HELICOPTER RIDE":
+    name: "NAC Helicopter Ride"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "WILD HORIZONS":
+    name: "Wild Horizons"
+    address: "Victoria Falls"
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# RESTAURANTS
+# =============================================================================
+restaurants:
+  "THE BUNGALOW":
+    name: "The Bungalow"
+    address: "3 Victoria Road, Clifton, Cape Town"
+    phone: "+27 (0)21 438 2018"
+    gps: "S 33° 56' 16.8\", E 18° 22' 33.6\""
+
+  "BUNGALOW":
+    name: "The Bungalow"
+    address: "3 Victoria Road, Clifton, Cape Town"
+    phone: "+27 (0)21 438 2018"
+    gps: "S 33° 56' 16.8\", E 18° 22' 33.6\""
+
+  "THE BUNGAOW":
+    name: "The Bungalow"
+    address: "3 Victoria Road, Clifton, Cape Town"
+    phone: "+27 (0)21 438 2018"
+    gps: "S 33° 56' 16.8\", E 18° 22' 33.6\""
+
+  "CHAR'D GRILL":
+    name: "Char'd Grill & Wine Bar"
+    address: "Hermanus Waterfront, Market Square Street, Hermanus"
+    phone: "+27 (0)28 312 1986"
+    gps: "S 34° 25' 4.8\", E 19° 14' 52.8\""
+
+  "CHAR'D":
+    name: "Char'd Grill & Wine Bar"
+    address: "Hermanus Waterfront, Market Square Street, Hermanus"
+    phone: "+27 (0)28 312 1986"
+    gps: "S 34° 25' 4.8\", E 19° 14' 52.8\""
+
+  "CHARD":
+    name: "Char'd Grill & Wine Bar"
+    address: "Hermanus Waterfront, Market Square Street, Hermanus"
+    phone: "+27 (0)28 312 1986"
+    gps: "S 34° 25' 4.8\", E 19° 14' 52.8\""
+
+  "THE FAT BUTCHER":
+    name: "The Fat Butcher"
+    address: "19 Harbour Road, Hermanus, 7200"
+    phone: "+27 (0)28 312 2350"
+    gps: "S 34° 25' 1.2\", E 19° 15' 0.0\""
+
+  "FAT BUTCHER":
+    name: "The Fat Butcher"
+    address: "19 Harbour Road, Hermanus, 7200"
+    phone: "+27 (0)28 312 2350"
+    gps: "S 34° 25' 1.2\", E 19° 15' 0.0\""
+
+  "HARBOUR HOUSE":
+    name: "Harbour House Kalk Bay"
+    address: "Kalk Bay Harbour, Cape Town"
+    phone: "+27 (0)21 788 4133"
+    gps: "S 34° 7' 48.0\", E 18° 27' 0.0\""
+
+  "HARBOUR HOUSE KALK":
+    name: "Harbour House Kalk Bay"
+    address: "Kalk Bay Harbour, Cape Town"
+    phone: "+27 (0)21 788 4133"
+    gps: "S 34° 7' 48.0\", E 18° 27' 0.0\""
+
+  "HARBOUR HOUSE WATERFRONT":
+    name: "Harbour House V&A"
+    address: "V&A Waterfront, Cape Town"
+    phone: "+27 (0)21 418 4744"
+    gps: ""
+
+  "THE LOOKOUT DECK":
+    name: "The Lookout Deck"
+    address: "Lookout Beach, Plettenberg Bay, 6600"
+    phone: "+27 (0)44 533 1379"
+    gps: "S 34° 3' 36.0\", E 23° 22' 48.0\""
+
+  "LOOKOUT DECK":
+    name: "The Lookout Deck"
+    address: "Lookout Beach, Plettenberg Bay, 6600"
+    phone: "+27 (0)44 533 1379"
+    gps: "S 34° 3' 36.0\", E 23° 22' 48.0\""
+
+  "DELAIRE GRAFF":
+    name: "Delaire Graff Restaurant"
+    address: "Helshoogte Pass, Stellenbosch, 7600"
+    phone: "+27 (0)21 885 8160"
+    gps: "S 33° 54' 18.0\", E 18° 55' 30.0\""
+
+  "DELAIRE":
+    name: "Delaire Graff Restaurant"
+    address: "Helshoogte Pass, Stellenbosch, 7600"
+    phone: "+27 (0)21 885 8160"
+    gps: "S 33° 54' 18.0\", E 18° 55' 30.0\""
+
+  "LA PINETA":
+    name: "La Pineta"
+    address: "Hermanus CBD, Hermanus, 7200"
+    phone: "+27 (0)28 312 3642"
+    gps: "S 34° 25' 1.2\", E 19° 14' 38.4\""
+
+  "TWO STORIES":
+    name: "Two Stories Knysna"
+    address: "Woodmill Lane, Knysna, 6571"
+    phone: "+27 (0)44 382 7088"
+    gps: "S 34° 2' 16.8\", E 23° 2' 31.2\""
+
+  "2 STORIES":
+    name: "Two Stories Knysna"
+    address: "Woodmill Lane, Knysna, 6571"
+    phone: "+27 (0)44 382 7088"
+    gps: "S 34° 2' 16.8\", E 23° 2' 31.2\""
+
+  "KNYSNA 2 STORIES":
+    name: "Two Stories Knysna"
+    address: "Woodmill Lane, Knysna, 6571"
+    phone: "+27 (0)44 382 7088"
+    gps: "S 34° 2' 16.8\", E 23° 2' 31.2\""
+
+  "DRY DOCK":
+    name: "Dry Dock Food Co."
+    address: "Main Street, Knysna, 6571"
+    phone: "+27 (0)44 382 7310"
+    gps: "S 34° 2' 13.2\", E 23° 2' 34.8\""
+
+  "DRYDOCK":
+    name: "Dry Dock Food Co."
+    address: "Main Street, Knysna, 6571"
+    phone: "+27 (0)44 382 7310"
+    gps: "S 34° 2' 13.2\", E 23° 2' 34.8\""
+
+  "SIROCCO":
+    name: "Sirocco"
+    address: "Knysna Quays, Waterfront Drive, Knysna, 6571"
+    phone: "+27 (0)44 382 4064"
+    gps: "S 34° 2' 24.0\", E 23° 2' 52.8\""
+
+  "ENRICOS":
+    name: "Enrico's Restaurant"
+    address: "Keurboomstrand, Plettenberg Bay, 6600"
+    phone: "+27 (0)44 535 9818"
+    gps: "S 34° 0' 36.0\", E 23° 28' 12.0\""
+
+  "DIE VOLKSKOMBUIS":
+    name: "Die Volkskombuis"
+    address: "Aan De Wagenweg, Stellenbosch, 7600"
+    phone: "+27 (0)21 887 2121"
+    gps: "S 33° 56' 24.0\", E 18° 51' 0.0\""
+
+  "VOLKSKOMBUIS":
+    name: "Die Volkskombuis"
+    address: "Aan De Wagenweg, Stellenbosch, 7600"
+    phone: "+27 (0)21 887 2121"
+    gps: "S 33° 56' 24.0\", E 18° 51' 0.0\""
+
+  "ZACHARY'S PEZULA":
+    name: "Zachary's at Pezula"
+    address: "Pezula Private Estate, Knysna, 6570"
+    phone: "+27 (0)44 302 3333"
+    gps: "S 34° 3' 36.0\", E 23° 3' 0.0\""
+
+  "ZACHARY'S":
+    name: "Zachary's at Pezula"
+    address: "Pezula Private Estate, Knysna, 6570"
+    phone: "+27 (0)44 302 3333"
+    gps: "S 34° 3' 36.0\", E 23° 3' 0.0\""
+
+  "ZACHARYS PEZULA":
+    name: "Zachary's at Pezula"
+    address: "Pezula Private Estate, Knysna, 6570"
+    phone: "+27 (0)44 302 3333"
+    gps: "S 34° 3' 36.0\", E 23° 3' 0.0\""
+
+  "LA CANTINA":
+    name: "Fancourt - La Cantina"
+    address: "Fancourt Hotel, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "FANCOURT LA CANTINA":
+    name: "Fancourt - La Cantina"
+    address: "Fancourt Hotel, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "HENRY WHITES":
+    name: "Fancourt - Henry White's"
+    address: "Fancourt Hotel, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "FANCOURT HENRY WHITES":
+    name: "Fancourt - Henry White's"
+    address: "Fancourt Hotel, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "CLUB LOUNGE":
+    name: "Fancourt - The Club Lounge"
+    address: "Fancourt Hotel, George, 6530"
+    phone: "+27 (0)44 804 0000"
+    gps: "S 33° 58' 48.0\", E 22° 24' 36.0\""
+
+  "BISTRO 1682":
+    name: "Bistro 1682"
+    address: "Steenberg Estate, Tokai Road, Constantia, 7945"
+    phone: "+27 (0)21 713 2211"
+    gps: "S 34° 4' 30.0\", E 18° 25' 48.0\""
+
+  "SEVRUGA":
+    name: "Sevruga"
+    address: "V&A Waterfront, Cape Town"
+    phone: "+27 (0)21 421 5134"
+    gps: "S 33° 54' 18.0\", E 18° 25' 12.0\""
+
+  "BELTHAZAR":
+    name: "Belthazar"
+    address: "V&A Waterfront, Cape Town"
+    phone: "+27 (0)21 421 3753"
+    gps: "S 33° 54' 10.8\", E 18° 25' 4.8\""
+
+  "GRAND AFRICA":
+    name: "Grand Africa Café & Beach"
+    address: "V&A Waterfront, Cape Town"
+    phone: "+27 (0)21 425 0551"
+    gps: "S 33° 54' 0.0\", E 18° 24' 36.0\""
+
+  "GRAND AFRICA CAFE":
+    name: "Grand Africa Café & Beach"
+    address: "V&A Waterfront, Cape Town"
+    phone: "+27 (0)21 425 0551"
+    gps: "S 33° 54' 0.0\", E 18° 24' 36.0\""
+
+  "GRAND AFRICA LOOKOUT":
+    name: "Grand Africa Café & Beach"
+    address: "V&A Waterfront, Cape Town"
+    phone: "+27 (0)21 425 0551"
+    gps: "S 33° 54' 0.0\", E 18° 24' 36.0\""
+
+  "VUUR":
+    name: "VUUR"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "CAVALLI":
+    name: "Cavalli"
+    address: "Somerset West"
+    phone: ""
+    gps: ""
+
+  "TAPHUIS":
+    name: "Taphuis"
+    address: "Paarl"
+    phone: ""
+    gps: ""
+
+  "MARBLE":
+    name: "Marble Restaurant"
+    address: "Johannesburg"
+    phone: ""
+    gps: ""
+
+  "LA PERLA":
+    name: "La Perla Restaurant"
+    address: "Sea Point, Cape Town"
+    phone: ""
+    gps: ""
+
+  "TIGHTLINE":
+    name: "Tightline Restaurant"
+    address: "Knysna"
+    phone: ""
+    gps: ""
+
+  "MONT MARIE":
+    name: "Mont Marie Restaurant"
+    address: "Franschhoek"
+    phone: ""
+    gps: ""
+
+  "COY":
+    name: "COY"
+    address: "V&A Waterfront, Cape Town"
+    phone: ""
+    gps: ""
+
+  "COY WATERFRONT":
+    name: "COY"
+    address: "V&A Waterfront, Cape Town"
+    phone: ""
+    gps: ""
+
+  "FLAMES":
+    name: "Flames"
+    address: ""
+    phone: ""
+    gps: ""
+
+  "GOLD":
+    name: "Gold"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "MOZAMBIK":
+    name: "Mozambik Ballito"
+    address: "Ballito, KZN"
+    phone: ""
+    gps: ""
+
+  "TWO OCEANS":
+    name: "Two Oceans Restaurant"
+    address: "Cape Point, Cape Town"
+    phone: ""
+    gps: ""
+
+  "ROCK RESTAURANT":
+    name: "The Rock Restaurant"
+    address: ""
+    phone: ""
+    gps: ""
+
+  "MILLHOUSE":
+    name: "Millhouse Lourensford"
+    address: "Somerset West"
+    phone: ""
+    gps: ""
+
+  "FOUR COUSINS":
+    name: "Four Cousins Restaurant"
+    address: "Robertson"
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# TRANSFER COMPANIES
+# =============================================================================
+transfers:
+  "OSPREY":
+    name: "Osprey Tours"
+    address: "Cape Town"
+    phone: "+27 (0)81 032 7936"
+    gps: ""
+
+  "OSPREY TOURS":
+    name: "Osprey Tours"
+    address: "Cape Town"
+    phone: "+27 (0)81 032 7936"
+    gps: ""
+
+  "PERCY":
+    name: "Percy Tours"
+    address: "46 Main Road, Hermanus, 7200"
+    phone: "+27 (0)72 062 8500"
+    gps: "S 34.4337°, E 19.2247°"
+
+  "PERCY TOURS":
+    name: "Percy Tours"
+    address: "46 Main Road, Hermanus, 7200"
+    phone: "+27 (0)72 062 8500"
+    gps: "S 34.4337°, E 19.2247°"
+
+  "IGO AFRIKA":
+    name: "Igo Afrika Tours"
+    address: "Cape Town"
+    phone: "+27 (0)21 511 1784"
+    gps: ""
+
+  "CPT SHUTTLES":
+    name: "CPT Shuttles"
+    address: "Cape Town"
+    phone: ""
+    gps: ""
+
+  "EZ SHUTTLES":
+    name: "EZ Shuttles"
+    address: "Cape Town"
+    phone: "+27 (0)21 531 3974"
+    gps: ""
+
+  "GARDEN ROUTE SHUTTLES":
+    name: "Garden Route Shuttles"
+    address: "George, Garden Route"
+    phone: "+27 (0)82 412 6044"
+    gps: ""
+
+  "LOW VELD LINK":
+    name: "Low Veld Link"
+    address: "Mpumalanga"
+    phone: ""
+    gps: ""
+
+  "ALGARVE FAMILY":
+    name: "Algarve Family Transfers"
+    address: "Algarve, Portugal"
+    phone: ""
+    gps: ""
+
+  "SPAIN ESSENTIAL":
+    name: "Spain Essential"
+    address: "Spain"
+    phone: ""
+    gps: ""
+
+  "EMOTIONS":
+    name: "Emotions Transfers"
+    address: ""
+    phone: ""
+    gps: ""
+
+# =============================================================================
+# CAR RENTAL
+# =============================================================================
+car_rental:
+  "PACE":
+    name: "Pace Car Rental"
+    address: "Unit 6 Airport Business Park, Michigan Road, Airport Industria, Cape Town, 7525"
+    phone: "+27 (0)21 386 2411"
+    gps: "S 33.9761°, E 18.5650°"
+
+  "PACE CAR":
+    name: "Pace Car Rental"
+    address: "Unit 6 Airport Business Park, Michigan Road, Airport Industria, Cape Town, 7525"
+    phone: "+27 (0)21 386 2411"
+    gps: "S 33.9761°, E 18.5650°"
+
+  "PACE CAR RENTAL":
+    name: "Pace Car Rental"
+    address: "Unit 6 Airport Business Park, Michigan Road, Airport Industria, Cape Town, 7525"
+    phone: "+27 (0)21 386 2411"
+    gps: "S 33.9761°, E 18.5650°"
+
+  "CABS":
+    name: "Cabs Car Rental"
+    address: "Cape Town International Airport"
+    phone: "+27 (0)21 380 5500"
+    gps: ""
+
+  "CABS CAR":
+    name: "Cabs Car Rental"
+    address: "Cape Town International Airport"
+    phone: "+27 (0)21 380 5500"
+    gps: ""
+
+  "CABS CAR RENTAL":
+    name: "Cabs Car Rental"
+    address: "Cape Town International Airport"
+    phone: "+27 (0)21 380 5500"
+    gps: ""
+
+  "BLUU":
+    name: "Bluu Car Rental"
+    address: ""
+    phone: ""
+    gps: ""
+
+  "SANI":
+    name: "Sani Car Rental"
+    address: ""
+    phone: ""
+    gps: ""
+
