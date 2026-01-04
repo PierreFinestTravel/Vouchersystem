@@ -53,6 +53,19 @@ def get_board_basis_text(board: str) -> str:
     return board_map.get(board.upper().strip(), board)
 
 
+def expand_abbreviations(text: str) -> str:
+    """Expand common abbreviations in voucher text.
+    
+    CA = Clients Account (for items guest pays themselves)
+    """
+    if not text:
+        return text
+    # Replace (CA) with (Clients Account) - case insensitive
+    import re
+    text = re.sub(r'\(CA\)', '(Clients Account)', text, flags=re.IGNORECASE)
+    return text
+
+
 def find_paragraph_by_start(cell, start_text: str):
     """Find a paragraph that starts with specific text."""
     for para in cell.paragraphs:
@@ -185,8 +198,14 @@ class VoucherGenerator:
         """Get supplier info from database."""
         return get_supplier_info(supplier_name)
     
-    def _fill_supplier_header(self, doc: Document, supplier_name: str):
-        """Fill the supplier header section (Row 1 of the table)."""
+    def _fill_supplier_header(self, doc: Document, supplier_name: str, category: str = None):
+        """Fill the supplier header section (Row 1 of the table).
+        
+        Args:
+            doc: The document to fill
+            supplier_name: The supplier name from ORGA
+            category: Optional category hint. If 'golf', will try to find golf-specific entry.
+        """
         if not doc.tables:
             return
         
@@ -195,7 +214,16 @@ class VoucherGenerator:
             return
         
         cell = table.rows[1].cells[0]
-        info = self._get_supplier_info(supplier_name)
+        
+        # For golf category, try to find the golf course entry first (e.g., "DE ZALZE GC")
+        if category == "golf":
+            # Try with GC suffix for golf-specific lookup
+            info = self._get_supplier_info(supplier_name + " GC")
+            if not info.get("address"):
+                # Fallback to regular lookup
+                info = self._get_supplier_info(supplier_name)
+        else:
+            info = self._get_supplier_info(supplier_name)
         
         # Clear existing content
         for para in cell.paragraphs:
@@ -372,6 +400,9 @@ class VoucherGenerator:
         if included_services:
             for service in included_services:
                 if service.strip():
+                    # Expand abbreviations (CA -> Clients Account)
+                    service = expand_abbreviations(service)
+                    
                     p = get_or_add_para()
                     # Add bullet point
                     run = p.add_run("•    ")
@@ -393,6 +424,9 @@ class VoucherGenerator:
         
         # Notes section
         if notes:
+            # Expand abbreviations (CA -> Clients Account)
+            notes = expand_abbreviations(notes)
+            
             get_or_add_para()
             p = get_or_add_para()
             run = p.add_run("Notes:")
@@ -629,9 +663,19 @@ class VoucherGenerator:
         """Generate a golf voucher."""
         doc = self._load_template()
         
-        self._fill_supplier_header(doc, golf.supplier)
+        # For golf vouchers, look up as golf course (try "NAME GC" first for golf-specific entry)
+        self._fill_supplier_header(doc, golf.supplier, category="golf")
         
-        services = [f"Golf Course: {golf.course}"]
+        # Get the golf course display name
+        golf_info = get_supplier_info(golf.supplier + " GC")
+        if not golf_info.get("address"):
+            # Fallback: try without GC suffix but still look in config
+            golf_info = get_supplier_info(golf.supplier)
+        
+        # Use the golf course name from config if available, otherwise use course from ORGA
+        course_display = golf_info.get("display_name", golf.course)
+        
+        services = [f"Golf Course: {course_display}"]
         if golf.cart:
             services.append(f"Cart: {golf.cart}")
         if golf.rental_set:
