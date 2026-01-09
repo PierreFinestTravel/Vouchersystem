@@ -14,7 +14,7 @@ import io
 
 from .orga_parser import parse_orga
 from .voucher_generator import VoucherGenerator
-from .pdf_merger import process_vouchers_to_pdf
+from .pdf_merger import process_vouchers_to_zip
 from .validation import validate_and_report, get_validation_summary
 from .name_mapper import clear_suspicious_names_log
 from .client_parser import (
@@ -558,7 +558,7 @@ def get_html_page() -> str:
                     const blob = await response.blob();
                     const contentDisposition = response.headers.get('Content-Disposition');
                     
-                    let filename = mode === 'group' ? 'Vouchers.zip' : 'Travel_Vouchers.pdf';
+                    let filename = 'Vouchers.zip';
                     if (contentDisposition) {
                         const match = contentDisposition.match(/filename="?([^"]+)"?/);
                         if (match) filename = match[1];
@@ -581,11 +581,7 @@ def get_html_page() -> str:
                         document.body.removeChild(a);
                     }, 1000);
                     
-                    const msg = mode === 'group' 
-                        ? 'Vouchers generated! ZIP file with per-room PDFs is downloading.'
-                        : 'Voucher generated! PDF is downloading.';
-                    showMessage(msg, 'success');
-                    
+                    showMessage('Vouchers generated! ZIP file is downloading.', 'success');
                     console.log('Download triggered:', filename, 'Size:', blob.size);
                 } else {
                     const error = await response.json();
@@ -785,21 +781,21 @@ async def generate_single_mode(parsed_data, client_path: str, temp_dir: str, tri
     
     logger.info(f"Generated {len(vouchers)} vouchers")
     
-    # Convert to PDF and merge
+    # Package vouchers as ZIP (no PDF conversion - much faster!)
     output_dir = os.path.join(temp_dir, "output")
     safe_name = "".join(c for c in traveller_names if c.isalnum() or c in (' ', '-', '_', '&'))
     safe_name = safe_name.replace(' ', '_').replace('&', '_')[:30]
-    final_pdf_name = f"{trip_id}_{safe_name}_Vouchers.pdf"
+    final_zip_name = f"{trip_id}_{safe_name}_Vouchers.zip"
     
     try:
-        final_pdf_path = process_vouchers_to_pdf(vouchers, output_dir, final_pdf_name)
+        final_zip_path = process_vouchers_to_zip(vouchers, output_dir, final_zip_name)
     except Exception as e:
-        logger.error(f"PDF conversion failed: {e}")
-        raise HTTPException(status_code=500, detail=f"PDF conversion failed: {str(e)}")
+        logger.error(f"ZIP creation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"ZIP creation failed: {str(e)}")
     
-    # Read PDF into memory for clean download (no temp path exposure)
-    with open(final_pdf_path, 'rb') as f:
-        pdf_content = f.read()
+    # Read ZIP into memory for clean download (no temp path exposure)
+    with open(final_zip_path, 'rb') as f:
+        zip_content = f.read()
     
     # Clean up temp directory
     try:
@@ -809,11 +805,11 @@ async def generate_single_mode(parsed_data, client_path: str, temp_dir: str, tri
     
     # Return as streaming response (direct download)
     return StreamingResponse(
-        io.BytesIO(pdf_content),
-        media_type="application/pdf",
+        io.BytesIO(zip_content),
+        media_type="application/zip",
         headers={
-            "Content-Disposition": f'attachment; filename="{final_pdf_name}"',
-            "Content-Length": str(len(pdf_content))
+            "Content-Disposition": f'attachment; filename="{final_zip_name}"',
+            "Content-Length": str(len(zip_content))
         }
     )
 
@@ -857,7 +853,7 @@ async def generate_group_mode(parsed_data, client_path: str, temp_dir: str, trip
     logger.info(f"GROUP mode - {len(rooms)} rooms found")
     
     # Generate PDFs for each room
-    pdf_files = []
+    zip_files = []
     
     for room in rooms:
         traveller_names = room.get_names_display()
@@ -884,28 +880,28 @@ async def generate_group_mode(parsed_data, client_path: str, temp_dir: str, trip
             logger.warning(f"No vouchers generated for Room {room.room_number}")
             continue
         
-        # Convert to PDF
+        # Package as ZIP (no PDF conversion - much faster!)
         room_output_dir = os.path.join(temp_dir, f"output_room_{room.room_number}")
         safe_names = room.get_filename_safe()
-        pdf_name = f"{trip_id}_{safe_names}.pdf"
+        zip_name = f"{trip_id}_{safe_names}.zip"
         
         try:
-            pdf_path = process_vouchers_to_pdf(vouchers, room_output_dir, pdf_name)
-            pdf_files.append((pdf_path, pdf_name))
+            zip_path = process_vouchers_to_zip(vouchers, room_output_dir, zip_name)
+            zip_files.append((zip_path, zip_name))
         except Exception as e:
-            logger.error(f"PDF conversion failed for room {room.room_number}: {e}")
+            logger.error(f"ZIP creation failed for room {room.room_number}: {e}")
             continue
     
-    if not pdf_files:
-        raise HTTPException(status_code=500, detail="Failed to generate any PDFs")
+    if not zip_files:
+        raise HTTPException(status_code=500, detail="Failed to generate any vouchers")
     
-    # If only one room, return single PDF
-    if len(pdf_files) == 1:
-        path, name = pdf_files[0]
+    # If only one room, return single ZIP
+    if len(zip_files) == 1:
+        path, name = zip_files[0]
         
-        # Read PDF into memory for clean download
+        # Read ZIP into memory for clean download
         with open(path, 'rb') as f:
-            pdf_content = f.read()
+            zip_content = f.read()
         
         # Clean up temp directory
         try:
@@ -914,25 +910,25 @@ async def generate_group_mode(parsed_data, client_path: str, temp_dir: str, trip
             logger.warning(f"Failed to cleanup temp dir: {e}")
         
         return StreamingResponse(
-            io.BytesIO(pdf_content),
-            media_type="application/pdf",
+            io.BytesIO(zip_content),
+            media_type="application/zip",
             headers={
                 "Content-Disposition": f'attachment; filename="{name}"',
-                "Content-Length": str(len(pdf_content))
+                "Content-Length": str(len(zip_content))
             }
         )
     
-    # Multiple rooms - create ZIP with only PDFs (clean structure)
-    zip_name = f"{trip_id}_Group_Vouchers.zip"
+    # Multiple rooms - create master ZIP with all room ZIPs
+    master_zip_name = f"{trip_id}_Group_Vouchers.zip"
     
     # Create ZIP in memory
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for pdf_path, pdf_name in pdf_files:
-            # Write PDF directly to ZIP root (no subfolders)
-            zf.write(pdf_path, pdf_name)
+        for zip_path, zip_name in zip_files:
+            # Write each room's ZIP directly to master ZIP
+            zf.write(zip_path, zip_name)
     
-    logger.info(f"Created ZIP with {len(pdf_files)} PDFs")
+    logger.info(f"Created master ZIP with {len(zip_files)} room packages")
     
     # Clean up temp directory
     try:
@@ -946,7 +942,7 @@ async def generate_group_mode(parsed_data, client_path: str, temp_dir: str, trip
         zip_buffer,
         media_type="application/zip",
         headers={
-            "Content-Disposition": f'attachment; filename="{zip_name}"',
+            "Content-Disposition": f'attachment; filename="{master_zip_name}"',
             "Content-Length": str(zip_buffer.getbuffer().nbytes)
         }
     )

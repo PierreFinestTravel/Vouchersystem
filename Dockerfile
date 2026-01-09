@@ -1,5 +1,5 @@
 # Dockerfile for Finest Travel Africa Voucher System
-# Optimized for Render.com free tier with LibreOffice for PDF conversion
+# Lightweight version - NO PDF conversion (returns DOCX files)
 
 FROM python:3.11-slim
 
@@ -7,16 +7,6 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=10000
-
-# Install system dependencies including LibreOffice for PDF conversion
-# Using minimal LibreOffice installation to reduce image size
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libreoffice-writer-nogui \
-    fonts-liberation \
-    fonts-dejavu-core \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /var/cache/apt/*
 
 # Set working directory
 WORKDIR /app
@@ -34,9 +24,9 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p /app/templates /tmp/voucher_gen
 
-# Expose the port (Render uses PORT env variable)
+# Expose the port
 EXPOSE 10000
 
-# Run the application - Render sets PORT automatically
+# Run the application
 CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}
 

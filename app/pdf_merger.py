@@ -307,3 +307,55 @@ def process_vouchers_to_pdf(
     
     return final_path
 
+
+def process_vouchers_to_zip(
+    vouchers: List[Tuple[str, str, date]],
+    output_dir: str,
+    final_zip_name: str = "Travel_Vouchers.zip"
+) -> str:
+    """Process all vouchers: sort and package as DOCX files in a ZIP.
+    
+    NO PDF conversion - returns original .docx files.
+    This is much faster as it skips LibreOffice conversion.
+    
+    Args:
+        vouchers: List of (docx_path, voucher_type, date) tuples
+        output_dir: Working directory for output
+        final_zip_name: Name for the final ZIP file
+        
+    Returns:
+        Path to the final ZIP file
+    """
+    import zipfile
+    import shutil
+    
+    if not vouchers:
+        raise ValueError("No vouchers to process")
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Sort by type and date
+    sorted_vouchers = sort_vouchers(vouchers)
+    
+    # Create ZIP file with sorted DOCX files
+    final_path = os.path.join(output_dir, final_zip_name)
+    
+    logger.info(f"Packaging {len(vouchers)} vouchers into ZIP (no PDF conversion)...")
+    
+    with zipfile.ZipFile(final_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for idx, (docx_path, voucher_type, voucher_date) in enumerate(sorted_vouchers, 1):
+            if os.path.exists(docx_path):
+                # Name files with order number for easy sorting
+                original_name = os.path.basename(docx_path)
+                # Add index prefix to maintain sort order
+                new_name = f"{idx:02d}_{original_name}"
+                zf.write(docx_path, new_name)
+                logger.info(f"Added to ZIP: {new_name}")
+            else:
+                logger.warning(f"DOCX file not found, skipping: {docx_path}")
+    
+    if not os.path.exists(final_path):
+        raise RuntimeError(f"Failed to create ZIP: {final_path}")
+    
+    logger.info(f"Successfully created ZIP with {len(vouchers)} vouchers: {final_path}")
+    return final_path
