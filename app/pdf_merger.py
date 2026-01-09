@@ -359,3 +359,86 @@ def process_vouchers_to_zip(
     
     logger.info(f"Successfully created ZIP with {len(vouchers)} vouchers: {final_path}")
     return final_path
+
+
+def merge_docx_files(
+    vouchers: List[Tuple[str, str, date]],
+    output_path: str
+) -> str:
+    """Merge multiple DOCX files into a single document.
+    
+    Args:
+        vouchers: List of (docx_path, voucher_type, date) tuples
+        output_path: Path for the merged output DOCX
+        
+    Returns:
+        Path to the merged DOCX file
+    """
+    from docx import Document
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+    
+    if not vouchers:
+        raise ValueError("No vouchers to merge")
+    
+    # Sort by type and date
+    sorted_vouchers = sort_vouchers(vouchers)
+    
+    logger.info(f"Merging {len(sorted_vouchers)} vouchers into single DOCX...")
+    
+    # Start with the first document as base
+    first_docx_path = sorted_vouchers[0][0]
+    merged_doc = Document(first_docx_path)
+    
+    # Append remaining documents
+    for docx_path, voucher_type, voucher_date in sorted_vouchers[1:]:
+        if not os.path.exists(docx_path):
+            logger.warning(f"DOCX file not found, skipping: {docx_path}")
+            continue
+        
+        # Add page break before each new voucher
+        merged_doc.add_page_break()
+        
+        # Open the document to append
+        sub_doc = Document(docx_path)
+        
+        # Copy all elements from sub_doc to merged_doc
+        for element in sub_doc.element.body:
+            merged_doc.element.body.append(element)
+    
+    # Ensure output directory exists
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    # Save merged document
+    merged_doc.save(output_path)
+    
+    if not os.path.exists(output_path):
+        raise RuntimeError(f"Failed to create merged DOCX: {output_path}")
+    
+    logger.info(f"Successfully created merged DOCX with {len(sorted_vouchers)} vouchers: {output_path}")
+    return output_path
+
+
+def process_vouchers_to_single_docx(
+    vouchers: List[Tuple[str, str, date]],
+    output_dir: str,
+    final_docx_name: str = "Travel_Vouchers.docx"
+) -> str:
+    """Process all vouchers: sort and merge into a single DOCX file.
+    
+    Args:
+        vouchers: List of (docx_path, voucher_type, date) tuples
+        output_dir: Working directory for output
+        final_docx_name: Name for the final merged DOCX
+        
+    Returns:
+        Path to the final merged DOCX file
+    """
+    if not vouchers:
+        raise ValueError("No vouchers to process")
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    final_path = os.path.join(output_dir, final_docx_name)
+    
+    return merge_docx_files(vouchers, final_path)

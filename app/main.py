@@ -14,7 +14,7 @@ import io
 
 from .orga_parser import parse_orga
 from .voucher_generator import VoucherGenerator
-from .pdf_merger import process_vouchers_to_zip
+from .pdf_merger import process_vouchers_to_single_docx
 from .validation import validate_and_report, get_validation_summary
 from .name_mapper import clear_suspicious_names_log
 from .client_parser import (
@@ -558,7 +558,7 @@ def get_html_page() -> str:
                     const blob = await response.blob();
                     const contentDisposition = response.headers.get('Content-Disposition');
                     
-                    let filename = 'Vouchers.zip';
+                    let filename = mode === 'group' ? 'Group_Vouchers.zip' : 'Vouchers.docx';
                     if (contentDisposition) {
                         const match = contentDisposition.match(/filename="?([^"]+)"?/);
                         if (match) filename = match[1];
@@ -581,7 +581,10 @@ def get_html_page() -> str:
                         document.body.removeChild(a);
                     }, 1000);
                     
-                    showMessage('Vouchers generated! ZIP file is downloading.', 'success');
+                    const msg = mode === 'group' 
+                        ? 'Vouchers generated! ZIP with one DOCX per room is downloading.'
+                        : 'Vouchers generated! DOCX file is downloading.';
+                    showMessage(msg, 'success');
                     console.log('Download triggered:', filename, 'Size:', blob.size);
                 } else {
                     const error = await response.json();
@@ -781,21 +784,21 @@ async def generate_single_mode(parsed_data, client_path: str, temp_dir: str, tri
     
     logger.info(f"Generated {len(vouchers)} vouchers")
     
-    # Package vouchers as ZIP (no PDF conversion - much faster!)
+    # Merge all vouchers into a single DOCX file
     output_dir = os.path.join(temp_dir, "output")
     safe_name = "".join(c for c in traveller_names if c.isalnum() or c in (' ', '-', '_', '&'))
     safe_name = safe_name.replace(' ', '_').replace('&', '_')[:30]
-    final_zip_name = f"{trip_id}_{safe_name}_Vouchers.zip"
+    final_docx_name = f"{trip_id}_{safe_name}_Vouchers.docx"
     
     try:
-        final_zip_path = process_vouchers_to_zip(vouchers, output_dir, final_zip_name)
+        final_docx_path = process_vouchers_to_single_docx(vouchers, output_dir, final_docx_name)
     except Exception as e:
-        logger.error(f"ZIP creation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"ZIP creation failed: {str(e)}")
+        logger.error(f"DOCX merge failed: {e}")
+        raise HTTPException(status_code=500, detail=f"DOCX merge failed: {str(e)}")
     
-    # Read ZIP into memory for clean download (no temp path exposure)
-    with open(final_zip_path, 'rb') as f:
-        zip_content = f.read()
+    # Read DOCX into memory for clean download (no temp path exposure)
+    with open(final_docx_path, 'rb') as f:
+        docx_content = f.read()
     
     # Clean up temp directory
     try:
@@ -805,11 +808,11 @@ async def generate_single_mode(parsed_data, client_path: str, temp_dir: str, tri
     
     # Return as streaming response (direct download)
     return StreamingResponse(
-        io.BytesIO(zip_content),
-        media_type="application/zip",
+        io.BytesIO(docx_content),
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={
-            "Content-Disposition": f'attachment; filename="{final_zip_name}"',
-            "Content-Length": str(len(zip_content))
+            "Content-Disposition": f'attachment; filename="{final_docx_name}"',
+            "Content-Length": str(len(docx_content))
         }
     )
 
@@ -853,7 +856,7 @@ async def generate_group_mode(parsed_data, client_path: str, temp_dir: str, trip
     logger.info(f"GROUP mode - {len(rooms)} rooms found")
     
     # Generate PDFs for each room
-    zip_files = []
+    docx_files = []
     
     for room in rooms:
         traveller_names = room.get_names_display()
@@ -880,28 +883,28 @@ async def generate_group_mode(parsed_data, client_path: str, temp_dir: str, trip
             logger.warning(f"No vouchers generated for Room {room.room_number}")
             continue
         
-        # Package as ZIP (no PDF conversion - much faster!)
+        # Merge all vouchers into single DOCX for this room
         room_output_dir = os.path.join(temp_dir, f"output_room_{room.room_number}")
         safe_names = room.get_filename_safe()
-        zip_name = f"{trip_id}_{safe_names}.zip"
+        docx_name = f"{trip_id}_{safe_names}.docx"
         
         try:
-            zip_path = process_vouchers_to_zip(vouchers, room_output_dir, zip_name)
-            zip_files.append((zip_path, zip_name))
+            docx_path = process_vouchers_to_single_docx(vouchers, room_output_dir, docx_name)
+            docx_files.append((docx_path, docx_name))
         except Exception as e:
-            logger.error(f"ZIP creation failed for room {room.room_number}: {e}")
+            logger.error(f"DOCX merge failed for room {room.room_number}: {e}")
             continue
     
-    if not zip_files:
+    if not docx_files:
         raise HTTPException(status_code=500, detail="Failed to generate any vouchers")
     
-    # If only one room, return single ZIP
-    if len(zip_files) == 1:
-        path, name = zip_files[0]
+    # If only one room, return single DOCX
+    if len(docx_files) == 1:
+        path, name = docx_files[0]
         
-        # Read ZIP into memory for clean download
+        # Read DOCX into memory for clean download
         with open(path, 'rb') as f:
-            zip_content = f.read()
+            docx_content = f.read()
         
         # Clean up temp directory
         try:
@@ -910,25 +913,25 @@ async def generate_group_mode(parsed_data, client_path: str, temp_dir: str, trip
             logger.warning(f"Failed to cleanup temp dir: {e}")
         
         return StreamingResponse(
-            io.BytesIO(zip_content),
-            media_type="application/zip",
+            io.BytesIO(docx_content),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             headers={
                 "Content-Disposition": f'attachment; filename="{name}"',
-                "Content-Length": str(len(zip_content))
+                "Content-Length": str(len(docx_content))
             }
         )
     
-    # Multiple rooms - create master ZIP with all room ZIPs
+    # Multiple rooms - create ZIP with one DOCX per room
     master_zip_name = f"{trip_id}_Group_Vouchers.zip"
     
     # Create ZIP in memory
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for zip_path, zip_name in zip_files:
-            # Write each room's ZIP directly to master ZIP
-            zf.write(zip_path, zip_name)
+        for docx_path, docx_name in docx_files:
+            # Write each room's DOCX directly to ZIP
+            zf.write(docx_path, docx_name)
     
-    logger.info(f"Created master ZIP with {len(zip_files)} room packages")
+    logger.info(f"Created ZIP with {len(docx_files)} room DOCX files")
     
     # Clean up temp directory
     try:
