@@ -564,20 +564,29 @@ def get_html_page() -> str:
                         if (match) filename = match[1];
                     }
                     
-                    // Download
+                    // Download - with delay to ensure browser starts download
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
+                    a.style.display = 'none';
                     a.href = url;
                     a.download = filename;
                     document.body.appendChild(a);
+                    
+                    // Force download
                     a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
+                    
+                    // Clean up after delay to ensure download starts
+                    setTimeout(() => {
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    }, 1000);
                     
                     const msg = mode === 'group' 
                         ? 'Vouchers generated! ZIP file with per-room PDFs is downloading.'
                         : 'Voucher generated! PDF is downloading.';
                     showMessage(msg, 'success');
+                    
+                    console.log('Download triggered:', filename, 'Size:', blob.size);
                 } else {
                     const error = await response.json();
                     showMessage(error.detail || 'An error occurred', 'error');
