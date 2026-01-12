@@ -615,6 +615,7 @@ def get_html_page() -> str:
         function showMessage(text, type) {
             messageDiv.textContent = text;
             messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';  // Force display
         }
     </script>
 </body>

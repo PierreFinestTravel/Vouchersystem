@@ -375,8 +375,8 @@ def merge_docx_files(
         Path to the merged DOCX file
     """
     from docx import Document
-    from docx.shared import Pt
-    from docx.enum.text import WD_BREAK
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
     from copy import deepcopy
     
     if not vouchers:
@@ -391,6 +391,19 @@ def merge_docx_files(
     first_docx_path = sorted_vouchers[0][0]
     merged_doc = Document(first_docx_path)
     
+    # Get the section properties element (keep it at the end)
+    body = merged_doc.element.body
+    sect_pr = None
+    for element in list(body):
+        tag = element.tag.split('}')[-1] if '}' in element.tag else element.tag
+        if tag == 'sectPr':
+            sect_pr = element
+            body.remove(element)
+            break
+    
+    # Remove empty paragraphs from first document
+    _clean_body_elements(body)
+    
     # Append remaining documents
     for docx_path, voucher_type, voucher_date in sorted_vouchers[1:]:
         if not os.path.exists(docx_path):
@@ -400,17 +413,34 @@ def merge_docx_files(
         # Open the document to append
         sub_doc = Document(docx_path)
         
-        # Add page break before new voucher content
-        # Only add if there's content to add
-        if len(sub_doc.element.body):
-            merged_doc.add_page_break()
-        
-        # Copy elements properly using deep copy
+        # Get content elements (tables and non-empty paragraphs only)
+        content_elements = []
         for element in sub_doc.element.body:
-            # Skip empty section properties that cause blank pages
-            if element.tag.endswith('sectPr'):
-                continue
-            merged_doc.element.body.append(deepcopy(element))
+            tag = element.tag.split('}')[-1] if '}' in element.tag else element.tag
+            if tag == 'tbl':
+                content_elements.append(deepcopy(element))
+            elif tag == 'p':
+                # Skip empty paragraphs and paragraphs with only page breaks
+                text = ''.join(element.itertext()).strip()
+                has_only_break = _has_only_page_break(element)
+                if text and not has_only_break:
+                    content_elements.append(deepcopy(element))
+        
+        # Skip if no real content
+        if not content_elements:
+            continue
+        
+        # Add page break paragraph before this voucher's content
+        page_break_p = _create_page_break_paragraph()
+        body.append(page_break_p)
+        
+        # Append content elements
+        for element in content_elements:
+            body.append(element)
+    
+    # Re-add section properties at the end
+    if sect_pr is not None:
+        body.append(sect_pr)
     
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -423,6 +453,49 @@ def merge_docx_files(
     
     logger.info(f"Successfully created merged DOCX with {len(sorted_vouchers)} vouchers: {output_path}")
     return output_path
+
+
+def _create_page_break_paragraph():
+    """Create a paragraph element containing only a page break."""
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+    
+    p = OxmlElement('w:p')
+    r = OxmlElement('w:r')
+    br = OxmlElement('w:br')
+    br.set(qn('w:type'), 'page')
+    r.append(br)
+    p.append(r)
+    return p
+
+
+def _has_only_page_break(element):
+    """Check if paragraph contains only a page break and no text."""
+    text = ''.join(element.itertext()).strip()
+    if text:
+        return False
+    
+    # Check if it has a page break
+    for child in element.iter():
+        tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+        if tag == 'br':
+            return True
+    return False
+
+
+def _clean_body_elements(body):
+    """Remove empty paragraphs from body, keep tables."""
+    elements_to_remove = []
+    
+    for element in body:
+        tag = element.tag.split('}')[-1] if '}' in element.tag else element.tag
+        if tag == 'p':
+            text = ''.join(element.itertext()).strip()
+            if not text:
+                elements_to_remove.append(element)
+    
+    for element in elements_to_remove:
+        body.remove(element)
 
 
 def process_vouchers_to_single_docx(

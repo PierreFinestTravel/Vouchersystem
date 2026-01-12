@@ -95,6 +95,62 @@ def clear_paragraph_after_label(paragraph, label: str):
         pass
 
 
+def remove_blank_pages(doc):
+    """Remove blank pages and trailing empty paragraphs from document.
+    
+    This fixes the issue where the template has a second blank page.
+    """
+    body = doc.element.body
+    
+    # Remove trailing empty paragraphs and page breaks
+    elements_to_remove = []
+    
+    for element in body:
+        tag = element.tag.split('}')[-1] if '}' in element.tag else element.tag
+        
+        if tag == 'p':
+            # Check if paragraph is empty or only contains a page break
+            text = ''.join(element.itertext()).strip()
+            
+            # Check for page break inside paragraph
+            has_page_break = False
+            for child in element.iter():
+                child_tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+                if child_tag == 'br':
+                    br_type = child.get('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}type')
+                    if br_type == 'page':
+                        has_page_break = True
+                        break
+            
+            # Mark empty paragraphs at the end for removal
+            if not text and not has_page_break:
+                # This is an empty paragraph - we'll handle it
+                pass
+    
+    # Work backwards to remove trailing empty paragraphs
+    while len(body) > 1:  # Keep at least one element
+        last_element = body[-1]
+        tag = last_element.tag.split('}')[-1] if '}' in last_element.tag else last_element.tag
+        
+        if tag == 'sectPr':
+            # Section properties - keep it
+            break
+        elif tag == 'p':
+            text = ''.join(last_element.itertext()).strip()
+            if not text:
+                # Empty paragraph - remove it
+                body.remove(last_element)
+                continue
+            else:
+                # Has content - stop
+                break
+        else:
+            # Other element - stop
+            break
+    
+    return doc
+
+
 class VoucherGenerator:
     """Generates voucher documents from parsed ORGA data."""
     
@@ -497,6 +553,7 @@ class VoucherGenerator:
             notes=hotel.notes
         )
         
+        remove_blank_pages(doc)
         doc.save(output_path)
     
     def _generate_transfer_voucher(
@@ -545,6 +602,7 @@ class VoucherGenerator:
             notes=notes
         )
         
+        remove_blank_pages(doc)
         doc.save(output_path)
     
     def _generate_car_rental_voucher(
@@ -584,6 +642,7 @@ class VoucherGenerator:
             notes=car.notes
         )
         
+        remove_blank_pages(doc)
         doc.save(output_path)
     
     def _generate_activity_voucher(
@@ -626,6 +685,7 @@ class VoucherGenerator:
             notes=notes
         )
         
+        remove_blank_pages(doc)
         doc.save(output_path)
     
     def _generate_restaurant_voucher(
@@ -651,6 +711,7 @@ class VoucherGenerator:
             included_services=services
         )
         
+        remove_blank_pages(doc)
         doc.save(output_path)
     
     def _generate_golf_voucher(
@@ -691,4 +752,5 @@ class VoucherGenerator:
             notes=golf.notes
         )
         
+        remove_blank_pages(doc)
         doc.save(output_path)
