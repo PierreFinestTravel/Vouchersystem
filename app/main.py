@@ -330,25 +330,49 @@ def get_html_page() -> str:
 
         .message {
             margin-top: 20px;
-            padding: 14px 18px;
-            border-radius: 10px;
-            font-size: 0.85rem;
+            padding: 18px 22px;
+            border-radius: 12px;
+            font-size: 0.95rem;
             text-align: center;
             display: none;
+            font-weight: 500;
+            line-height: 1.5;
         }
 
         .message.success {
             display: block;
-            background: rgba(76, 175, 80, 0.2);
-            border: 1px solid rgba(76, 175, 80, 0.4);
-            color: #81c784;
+            background: rgba(76, 175, 80, 0.25);
+            border: 2px solid rgba(76, 175, 80, 0.6);
+            color: #a5d6a7;
+            animation: fadeIn 0.3s ease;
         }
 
         .message.error {
             display: block;
-            background: rgba(244, 67, 54, 0.2);
-            border: 1px solid rgba(244, 67, 54, 0.4);
-            color: #ef9a9a;
+            background: rgba(244, 67, 54, 0.25);
+            border: 2px solid rgba(244, 67, 54, 0.6);
+            color: #ff8a80;
+            animation: shake 0.5s ease, fadeIn 0.3s ease;
+            font-weight: 600;
+        }
+
+        .message.error::before {
+            content: '⚠️ ';
+        }
+
+        .message.success::before {
+            content: '✅ ';
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .divider {
@@ -519,25 +543,51 @@ def get_html_page() -> str:
             const tripId = document.getElementById('trip_id').value.trim();
             const orgaFile = document.getElementById('orga_file').files[0];
             
-            // Validate
-            if (!tripId || tripId.length !== 4) {
-                showMessage('Please enter a valid 4-digit Trip ID', 'error');
+            // Validate Trip ID
+            if (!tripId) {
+                showMessage('Trip ID is required! Please enter a 4-digit code (e.g., 1008, 1115)', 'error');
+                document.getElementById('trip_id').focus();
                 return;
             }
             
+            if (tripId.length !== 4 || !/^\d{4}$/.test(tripId)) {
+                showMessage('Invalid Trip ID! Must be exactly 4 digits (e.g., 1008, 1115, 1222)', 'error');
+                document.getElementById('trip_id').focus();
+                return;
+            }
+            
+            // Validate ORGA file
             if (!orgaFile) {
-                showMessage('Please select an ORGA Excel file', 'error');
+                showMessage('ORGA Excel file is required! Please upload the ORGA file (.xlsx)', 'error');
                 return;
             }
             
-            if (mode === 'single' && !singleFileInput.files[0]) {
-                showMessage('Please select a client confirmation file', 'error');
+            if (!orgaFile.name.match(/\.xlsx?$/i)) {
+                showMessage('Invalid ORGA file! Please upload an Excel file (.xlsx or .xls)', 'error');
                 return;
             }
             
-            if (mode === 'group' && !groupFileInput.files[0]) {
-                showMessage('Please select a group client Excel file', 'error');
-                return;
+            // Validate client file based on mode
+            if (mode === 'single') {
+                if (!singleFileInput.files[0]) {
+                    showMessage('Client confirmation file is required for SINGLE mode! Please upload a .docx file', 'error');
+                    return;
+                }
+                if (!singleFileInput.files[0].name.match(/\.docx$/i)) {
+                    showMessage('Invalid client file! Please upload a Word document (.docx)', 'error');
+                    return;
+                }
+            }
+            
+            if (mode === 'group') {
+                if (!groupFileInput.files[0]) {
+                    showMessage('Group client Excel is required for GROUP mode! Please upload the booking sheet (.xlsx)', 'error');
+                    return;
+                }
+                if (!groupFileInput.files[0].name.match(/\.xlsx?$/i)) {
+                    showMessage('Invalid group file! Please upload an Excel file (.xlsx or .xls)', 'error');
+                    return;
+                }
             }
             
             // Show loading state
@@ -587,11 +637,23 @@ def get_html_page() -> str:
                     showMessage(msg, 'success');
                     console.log('Download triggered:', filename, 'Size:', blob.size);
                 } else {
-                    const error = await response.json();
-                    showMessage(error.detail || 'An error occurred', 'error');
+                    // Handle server errors
+                    let errorMsg = 'An error occurred while generating vouchers';
+                    try {
+                        const error = await response.json();
+                        errorMsg = error.detail || errorMsg;
+                    } catch (e) {
+                        errorMsg = 'Server error (Status: ' + response.status + ')';
+                    }
+                    showMessage(errorMsg, 'error');
                 }
             } catch (error) {
-                showMessage('An error occurred: ' + error.message, 'error');
+                // Handle network/connection errors
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showMessage('Connection error! Please check your internet connection and try again.', 'error');
+                } else {
+                    showMessage('Error: ' + error.message, 'error');
+                }
             } finally {
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
