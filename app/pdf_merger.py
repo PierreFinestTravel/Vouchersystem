@@ -376,8 +376,7 @@ def merge_docx_files(
     """
     from docx import Document
     from docx.shared import Pt
-    from docx.oxml.ns import qn
-    from docx.oxml import OxmlElement
+    from docx.enum.text import WD_BREAK
     from copy import deepcopy
     
     if not vouchers:
@@ -388,30 +387,30 @@ def merge_docx_files(
     
     logger.info(f"Merging {len(sorted_vouchers)} vouchers into single DOCX...")
     
-    # Create a new blank document
-    merged_doc = Document()
+    # Start with the first document as base
+    first_docx_path = sorted_vouchers[0][0]
+    merged_doc = Document(first_docx_path)
     
-    for idx, (docx_path, voucher_type, voucher_date) in enumerate(sorted_vouchers):
+    # Append remaining documents
+    for docx_path, voucher_type, voucher_date in sorted_vouchers[1:]:
         if not os.path.exists(docx_path):
             logger.warning(f"DOCX file not found, skipping: {docx_path}")
             continue
         
-        # Add page break before each voucher (except the first one)
-        if idx > 0:
-            merged_doc.add_page_break()
-        
         # Open the document to append
         sub_doc = Document(docx_path)
         
-        # Copy paragraphs and tables (skip section properties to avoid blank pages)
+        # Add page break before new voucher content
+        # Only add if there's content to add
+        if len(sub_doc.element.body):
+            merged_doc.add_page_break()
+        
+        # Copy elements properly using deep copy
         for element in sub_doc.element.body:
-            tag = element.tag.split('}')[-1]  # Get tag name without namespace
-            
-            # Only copy paragraphs (p) and tables (tbl), skip sectPr (section properties)
-            if tag in ['p', 'tbl']:
-                # Deep copy the element to avoid reference issues
-                new_element = deepcopy(element)
-                merged_doc.element.body.append(new_element)
+            # Skip empty section properties that cause blank pages
+            if element.tag.endswith('sectPr'):
+                continue
+            merged_doc.element.body.append(deepcopy(element))
     
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)

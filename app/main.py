@@ -330,9 +330,9 @@ def get_html_page() -> str:
 
         .message {
             margin-top: 20px;
-            padding: 18px 22px;
-            border-radius: 12px;
-            font-size: 0.95rem;
+            padding: 16px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
             text-align: center;
             display: none;
             font-weight: 500;
@@ -344,35 +344,14 @@ def get_html_page() -> str:
             background: rgba(76, 175, 80, 0.25);
             border: 2px solid rgba(76, 175, 80, 0.6);
             color: #a5d6a7;
-            animation: fadeIn 0.3s ease;
         }
 
         .message.error {
             display: block;
             background: rgba(244, 67, 54, 0.25);
             border: 2px solid rgba(244, 67, 54, 0.6);
-            color: #ff8a80;
-            animation: shake 0.5s ease, fadeIn 0.3s ease;
-            font-weight: 600;
-        }
-
-        .message.error::before {
-            content: '⚠️ ';
-        }
-
-        .message.success::before {
-            content: '✅ ';
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-8px); }
-            40%, 80% { transform: translateX(8px); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            color: #ef9a9a;
+            font-size: 0.95rem;
         }
 
         .divider {
@@ -543,51 +522,25 @@ def get_html_page() -> str:
             const tripId = document.getElementById('trip_id').value.trim();
             const orgaFile = document.getElementById('orga_file').files[0];
             
-            // Validate Trip ID
-            if (!tripId) {
-                showMessage('Trip ID is required! Please enter a 4-digit code (e.g., 1008, 1115)', 'error');
-                document.getElementById('trip_id').focus();
+            // Validate
+            if (!tripId || tripId.length !== 4) {
+                showMessage('Please enter a valid 4-digit Trip ID', 'error');
                 return;
             }
             
-            if (tripId.length !== 4 || !/^\d{4}$/.test(tripId)) {
-                showMessage('Invalid Trip ID! Must be exactly 4 digits (e.g., 1008, 1115, 1222)', 'error');
-                document.getElementById('trip_id').focus();
-                return;
-            }
-            
-            // Validate ORGA file
             if (!orgaFile) {
-                showMessage('ORGA Excel file is required! Please upload the ORGA file (.xlsx)', 'error');
+                showMessage('Please select an ORGA Excel file', 'error');
                 return;
             }
             
-            if (!orgaFile.name.match(/\.xlsx?$/i)) {
-                showMessage('Invalid ORGA file! Please upload an Excel file (.xlsx or .xls)', 'error');
+            if (mode === 'single' && !singleFileInput.files[0]) {
+                showMessage('Please select a client confirmation file', 'error');
                 return;
             }
             
-            // Validate client file based on mode
-            if (mode === 'single') {
-                if (!singleFileInput.files[0]) {
-                    showMessage('Client confirmation file is required for SINGLE mode! Please upload a .docx file', 'error');
-                    return;
-                }
-                if (!singleFileInput.files[0].name.match(/\.docx$/i)) {
-                    showMessage('Invalid client file! Please upload a Word document (.docx)', 'error');
-                    return;
-                }
-            }
-            
-            if (mode === 'group') {
-                if (!groupFileInput.files[0]) {
-                    showMessage('Group client Excel is required for GROUP mode! Please upload the booking sheet (.xlsx)', 'error');
-                    return;
-                }
-                if (!groupFileInput.files[0].name.match(/\.xlsx?$/i)) {
-                    showMessage('Invalid group file! Please upload an Excel file (.xlsx or .xls)', 'error');
-                    return;
-                }
+            if (mode === 'group' && !groupFileInput.files[0]) {
+                showMessage('Please select a group client Excel file', 'error');
+                return;
             }
             
             // Show loading state
@@ -603,57 +556,56 @@ def get_html_page() -> str:
                     body: formData
                 });
                 
-                if (response.ok) {
-                    const contentType = response.headers.get('Content-Type');
-                    const blob = await response.blob();
-                    const contentDisposition = response.headers.get('Content-Disposition');
-                    
-                    let filename = mode === 'group' ? 'Group_Vouchers.zip' : 'Vouchers.docx';
-                    if (contentDisposition) {
-                        const match = contentDisposition.match(/filename="?([^"]+)"?/);
-                        if (match) filename = match[1];
-                    }
-                    
-                    // Download - with delay to ensure browser starts download
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    
-                    // Force download
-                    a.click();
-                    
-                    // Clean up after delay to ensure download starts
-                    setTimeout(() => {
-                        window.URL.revokeObjectURL(url);
-                        document.body.removeChild(a);
-                    }, 1000);
-                    
-                    const msg = mode === 'group' 
-                        ? 'Vouchers generated! ZIP with one DOCX per room is downloading.'
-                        : 'Vouchers generated! DOCX file is downloading.';
-                    showMessage(msg, 'success');
-                    console.log('Download triggered:', filename, 'Size:', blob.size);
-                } else {
-                    // Handle server errors
-                    let errorMsg = 'An error occurred while generating vouchers';
+                const contentType = response.headers.get('Content-Type') || '';
+                
+                // Check if response is an error (JSON) or success (file)
+                if (!response.ok) {
+                    // Error response - parse as JSON
                     try {
                         const error = await response.json();
-                        errorMsg = error.detail || errorMsg;
+                        showMessage('❌ ' + (error.detail || 'An error occurred'), 'error');
                     } catch (e) {
-                        errorMsg = 'Server error (Status: ' + response.status + ')';
+                        const text = await response.text();
+                        showMessage('❌ Error: ' + text.substring(0, 200), 'error');
                     }
-                    showMessage(errorMsg, 'error');
+                    return;
                 }
+                
+                // Success - download the file
+                const blob = await response.blob();
+                const contentDisposition = response.headers.get('Content-Disposition');
+                
+                let filename = mode === 'group' ? 'Group_Vouchers.zip' : 'Vouchers.docx';
+                if (contentDisposition) {
+                    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+                    if (match) filename = match[1];
+                }
+                
+                // Download - with delay to ensure browser starts download
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                
+                // Force download
+                a.click();
+                
+                // Clean up after delay to ensure download starts
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                }, 1000);
+                
+                const msg = mode === 'group' 
+                    ? '✅ Vouchers generated! ZIP with one DOCX per room is downloading.'
+                    : '✅ Vouchers generated! DOCX file is downloading.';
+                showMessage(msg, 'success');
+                console.log('Download triggered:', filename, 'Size:', blob.size);
+                
             } catch (error) {
-                // Handle network/connection errors
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    showMessage('Connection error! Please check your internet connection and try again.', 'error');
-                } else {
-                    showMessage('Error: ' + error.message, 'error');
-                }
+                showMessage('❌ Network error: ' + error.message, 'error');
             } finally {
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;
