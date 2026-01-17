@@ -120,6 +120,17 @@ def parse_single_client_file(file_path: str) -> List[str]:
         r'^Teilnehmer:?\s*$',              # German: Participant
     ]
     
+    # Fallback pattern: Extract name from "Ihre Kunden [Name]" in text
+    for text in paragraphs:
+        # Pattern: "Ihre Kunden [LastName]" or "Kunden [LastName]"
+        match = re.search(r'(?:Ihre\s+)?Kunden\s+([A-ZÄÖÜ][a-zäöüß]+)(?:\s+\(|\s*,|\s*:)', text, re.IGNORECASE)
+        if match:
+            name = match.group(1).strip()
+            if name and len(name) >= 2:
+                logger.info(f"Found customer name from 'Ihre Kunden' pattern: {name}")
+                # This is just a last name - we'll use it as the family name
+                return [f"Familie {name}"]
+    
     # NOTE: Do NOT use generic "Name:" pattern - it matches company names like "Firmen Name:"
     
     for i, text in enumerate(paragraphs):
