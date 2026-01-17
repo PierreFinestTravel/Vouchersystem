@@ -86,7 +86,8 @@ def parse_single_client_file(file_path: str) -> List[str]:
     Names are ONLY extracted from the client file, never guessed.
     
     Looks for patterns like:
-    - "Kundennamen: Thomas & Petra Thonhauser"
+    - "Kundennamen: Thomas & Petra Thonhauser"  (names on same line)
+    - "Kundennamen:" followed by names on next lines
     - "Traveller names: Mr John Smith"
     
     Returns:
@@ -95,6 +96,7 @@ def parse_single_client_file(file_path: str) -> List[str]:
     """
     doc = Document(file_path)
     names = []
+    paragraphs = [p.text.strip() for p in doc.paragraphs]
     
     # Patterns to look for - MUST match one of these
     # Order matters: most specific patterns first
@@ -107,13 +109,24 @@ def parse_single_client_file(file_path: str) -> List[str]:
         r'Gast(?:name)?:\s*(.+)',         # German: Guest/Guest name
         r'Teilnehmer:\s*(.+)',            # German: Participant
     ]
+    
+    # Header patterns (label on its own line, names on following lines)
+    header_patterns = [
+        r'^Kundennamen?:?\s*$',            # German: Customer name(s) - alone on line
+        r'^Traveller\s*names?:?\s*$',      # English: Traveller name(s)
+        r'^Client\s*names?:?\s*$',         # English: Client name(s)
+        r'^Guest\s*names?:?\s*$',          # English: Guest name(s)
+        r'^Reisende[nr]?:?\s*$',           # German: Traveller(s)
+        r'^Teilnehmer:?\s*$',              # German: Participant
+    ]
+    
     # NOTE: Do NOT use generic "Name:" pattern - it matches company names like "Firmen Name:"
     
-    for para in doc.paragraphs:
-        text = para.text.strip()
+    for i, text in enumerate(paragraphs):
         if not text:
             continue
         
+        # First, check if names are on the SAME line as the label
         for pattern in name_patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
@@ -128,8 +141,46 @@ def parse_single_client_file(file_path: str) -> List[str]:
                     valid_names = [n for n in names_found if n and len(n.strip()) >= 2]
                     if valid_names:
                         names.extend(valid_names)
-                        logger.info(f"Found names in SINGLE file: {valid_names}")
+                        logger.info(f"Found names in SINGLE file (same line): {valid_names}")
                         return names  # Return first valid match
+        
+        # Second, check if this is a header line with names on FOLLOWING lines
+        for pattern in header_patterns:
+            if re.match(pattern, text, re.IGNORECASE):
+                # Found header, look for names in following paragraphs
+                logger.info(f"Found name header at line {i}: '{text}'")
+                found_names = []
+                
+                # Read following lines until we hit an empty line or non-name content
+                for j in range(i + 1, min(i + 10, len(paragraphs))):
+                    next_text = paragraphs[j].strip()
+                    
+                    if not next_text:
+                        # Empty line - stop if we already have names
+                        if found_names:
+                            break
+                        continue
+                    
+                    # Stop if we hit a new section/label
+                    if ':' in next_text and any(kw in next_text.lower() for kw in 
+                        ['firmen', 'typ', 'datum', 'link', 'b&b', 'übernachtung', 
+                         'geschäftsbedingungen', 'storno', 'einreise', 'impf']):
+                        break
+                    
+                    # Check if this looks like a name (starts with Herr/Frau or has capital letter)
+                    if (next_text.startswith(('Herr ', 'Frau ', 'Mr ', 'Mrs ', 'Ms ', 'Dr ')) or
+                        (next_text[0].isupper() and len(next_text.split()) >= 2)):
+                        # Clean the name - remove annotations like (EZ), (DZ)
+                        clean_name = re.sub(r'\s*\([^)]*\)\s*$', '', next_text).strip()
+                        # Remove Herr/Frau prefix for cleaner output
+                        clean_name = re.sub(r'^(Herr|Frau|Mr\.?|Mrs\.?|Ms\.?|Dr\.?)\s+', '', clean_name).strip()
+                        if clean_name and len(clean_name) >= 2:
+                            found_names.append(clean_name)
+                            logger.info(f"  Found name: '{clean_name}'")
+                
+                if found_names:
+                    logger.info(f"Found names in SINGLE file (multi-line): {found_names}")
+                    return found_names
     
     # NO GUESSING - if no pattern matched, return empty list
     # The caller MUST handle this as an error
